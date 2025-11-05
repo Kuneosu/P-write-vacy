@@ -19,11 +19,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSettingsChange
 }) => {
   const handleRadiusXChange = (value: number) => {
-    onSettingsChange({ ...focusSettings, radiusX: value });
+    if (focusSettings.focusShape === 'circle') {
+      // 원형일 때는 radiusX와 radiusY를 동시에 변경
+      onSettingsChange({ ...focusSettings, radiusX: value, radiusY: value });
+    } else {
+      onSettingsChange({ ...focusSettings, radiusX: value });
+    }
   };
 
   const handleRadiusYChange = (value: number) => {
-    onSettingsChange({ ...focusSettings, radiusY: value });
+    if (focusSettings.focusShape === 'circle') {
+      // 원형일 때는 radiusX와 radiusY를 동시에 변경
+      onSettingsChange({ ...focusSettings, radiusX: value, radiusY: value });
+    } else {
+      onSettingsChange({ ...focusSettings, radiusY: value });
+    }
   };
 
   const handleColorChange = (color: string) => {
@@ -42,8 +52,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onSettingsChange({ ...focusSettings, blurIntensity: intensity });
   };
 
-  const handleShapeChange = (shape: 'ellipse' | 'rectangle') => {
-    onSettingsChange({ ...focusSettings, focusShape: shape });
+  const handleShapeChange = (shape: 'ellipse' | 'circle') => {
+    if (shape === 'circle') {
+      // 원형으로 변경할 때 radiusX와 radiusY를 동일하게 설정
+      const radius = Math.max(focusSettings.radiusX, focusSettings.radiusY);
+      onSettingsChange({ ...focusSettings, focusShape: shape, radiusX: radius, radiusY: radius });
+    } else {
+      onSettingsChange({ ...focusSettings, focusShape: shape });
+    }
   };
 
   return (
@@ -123,10 +139,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <label className="text-sm text-gray-700 block mb-2">
                   모양
                 </label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => handleShapeChange('ellipse')}
-                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                       focusSettings.focusShape === 'ellipse'
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -135,9 +151,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     타원형
                   </button>
                   <button
-                    onClick={() => handleShapeChange('rectangle')}
-                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                      focusSettings.focusShape === 'rectangle'
+                    onClick={() => handleShapeChange('circle')}
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                      focusSettings.focusShape === 'circle'
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
@@ -147,43 +163,66 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
 
-              {/* Radius X */}
-              <div className="space-y-2 mb-4">
-                <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>가로 크기</span>
-                  <span className="font-mono text-blue-600">
-                    {focusSettings.radiusX}px
-                  </span>
-                </label>
-                <input
-                  type="range"
-                  min="30"
-                  max="150"
-                  step="5"
-                  value={focusSettings.radiusX}
-                  onChange={(e) => handleRadiusXChange(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-              </div>
+              {/* Circle: Single Size Control */}
+              {focusSettings.focusShape === 'circle' ? (
+                <div className="space-y-2 mb-4">
+                  <label className="flex items-center justify-between text-sm text-gray-700">
+                    <span>크기</span>
+                    <span className="font-mono text-blue-600">
+                      {focusSettings.radiusX}px
+                    </span>
+                  </label>
+                  <input
+                    type="range"
+                    min="30"
+                    max="150"
+                    step="5"
+                    value={focusSettings.radiusX}
+                    onChange={(e) => handleRadiusXChange(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Radius X */}
+                  <div className="space-y-2 mb-4">
+                    <label className="flex items-center justify-between text-sm text-gray-700">
+                      <span>가로 크기</span>
+                      <span className="font-mono text-blue-600">
+                        {focusSettings.radiusX}px
+                      </span>
+                    </label>
+                    <input
+                      type="range"
+                      min="30"
+                      max="150"
+                      step="5"
+                      value={focusSettings.radiusX}
+                      onChange={(e) => handleRadiusXChange(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                  </div>
 
-              {/* Radius Y */}
-              <div className="space-y-2">
-                <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>세로 크기</span>
-                  <span className="font-mono text-blue-600">
-                    {focusSettings.radiusY}px
-                  </span>
-                </label>
-                <input
-                  type="range"
-                  min="15"
-                  max="100"
-                  step="5"
-                  value={focusSettings.radiusY}
-                  onChange={(e) => handleRadiusYChange(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-              </div>
+                  {/* Radius Y */}
+                  <div className="space-y-2 mb-4">
+                    <label className="flex items-center justify-between text-sm text-gray-700">
+                      <span>세로 크기</span>
+                      <span className="font-mono text-blue-600">
+                        {focusSettings.radiusY}px
+                      </span>
+                    </label>
+                    <input
+                      type="range"
+                      min="15"
+                      max="100"
+                      step="5"
+                      value={focusSettings.radiusY}
+                      onChange={(e) => handleRadiusYChange(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="border-t border-gray-200 pt-6">

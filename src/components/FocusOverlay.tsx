@@ -26,32 +26,46 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
 
   const blurColorRgba = hexToRgba(blurColor, blurOpacity);
 
-  // 번짐 정도를 백분율로 계산 (100% 지점에서 시작하여 spread만큼 확장)
+  // 타원형과 원형은 mask 방식 사용
   const spreadEnd = 100 + blurSpread;
 
-  // 포커스 영역 모양에 따라 mask 생성
   const getMask = () => {
     if (focusShape === 'ellipse') {
-      return `radial-gradient(
-        ellipse ${radiusX}px ${radiusY}px at ${caretPosition.x}% ${caretPosition.y}%,
-        transparent 0%,
-        transparent 100%,
-        black ${spreadEnd}%
-      )`;
+      return {
+        mask: `radial-gradient(
+          ellipse ${radiusX}px ${radiusY}px at ${caretPosition.x}% ${caretPosition.y}%,
+          transparent 0%,
+          transparent 100%,
+          black ${spreadEnd}%
+        )`,
+        WebkitMask: `radial-gradient(
+          ellipse ${radiusX}px ${radiusY}px at ${caretPosition.x}% ${caretPosition.y}%,
+          transparent 0%,
+          transparent 100%,
+          black ${spreadEnd}%
+        )`
+      };
     } else {
-      // rectangle: 사각형 모양 (clip-path와 blur 조합)
-      // 간단한 구현: 원형을 사용하되 radiusX, radiusY의 최대값 사용
-      const maxRadius = Math.max(radiusX, radiusY);
-      return `radial-gradient(
-        circle ${maxRadius}px at ${caretPosition.x}% ${caretPosition.y}%,
-        transparent 0%,
-        transparent 100%,
-        black ${spreadEnd}%
-      )`;
+      // circle
+      const radius = Math.max(radiusX, radiusY);
+      return {
+        mask: `radial-gradient(
+          circle ${radius}px at ${caretPosition.x}% ${caretPosition.y}%,
+          transparent 0%,
+          transparent 100%,
+          black ${spreadEnd}%
+        )`,
+        WebkitMask: `radial-gradient(
+          circle ${radius}px at ${caretPosition.x}% ${caretPosition.y}%,
+          transparent 0%,
+          transparent 100%,
+          black ${spreadEnd}%
+        )`
+      };
     }
   };
 
-  const maskValue = getMask();
+  const maskStyles = getMask();
 
   const blurLayerStyle: React.CSSProperties = {
     position: 'absolute',
@@ -63,10 +77,9 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
     zIndex: 10,
     backdropFilter: `blur(${blurIntensity}px)`,
     WebkitBackdropFilter: `blur(${blurIntensity}px)`,
-    // @ts-ignore - mask is not in CSSProperties but works
-    mask: maskValue,
-    WebkitMask: maskValue,
-    background: blurColorRgba
+    background: blurColorRgba,
+    // @ts-ignore - mask properties are not in CSSProperties but work
+    ...maskStyles
   };
 
   return (
