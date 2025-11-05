@@ -105,6 +105,12 @@ function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+S: Toggle file explorer
+      if (e.ctrlKey && e.code === "KeyS") {
+        e.preventDefault();
+        setFileExplorerOpen((prev) => !prev);
+      }
+
       // Ctrl+H: Toggle privacy (한국어 자판에서도 작동)
       if (e.ctrlKey && e.code === "KeyH") {
         e.preventDefault();
