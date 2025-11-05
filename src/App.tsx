@@ -13,9 +13,10 @@ const STORAGE_KEYS = {
 const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
   radiusX: 60,
   radiusY: 30,
-  blurColor: '#ffffff',
-  blurOpacity: 0.95,
+  blurColor: '#000000',
+  blurOpacity: 0.3,
   blurSpread: 50, // 테두리 번짐 정도 (0-100)
+  blurIntensity: 7, // 블러 강도 (0-20px)
   focusShape: 'ellipse', // 기본값: 타원형
 };
 

@@ -38,6 +38,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onSettingsChange({ ...focusSettings, blurSpread: spread });
   };
 
+  const handleBlurIntensityChange = (intensity: number) => {
+    onSettingsChange({ ...focusSettings, blurIntensity: intensity });
+  };
+
   const handleShapeChange = (shape: 'ellipse' | 'rectangle') => {
     onSettingsChange({ ...focusSettings, focusShape: shape });
   };
@@ -222,6 +226,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChange={(e) => handleOpacityChange(Number(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
+              </div>
+
+              {/* Blur Intensity */}
+              <div className="space-y-2 mb-4">
+                <label className="flex items-center justify-between text-sm text-gray-700">
+                  <span>블러 강도</span>
+                  <span className="font-mono text-blue-600">
+                    {focusSettings.blurIntensity}px
+                  </span>
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="20"
+                  step="1"
+                  value={focusSettings.blurIntensity}
+                  onChange={(e) => handleBlurIntensityChange(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <p className="text-xs text-gray-500">
+                  블러 효과의 강도를 조절합니다
+                </p>
               </div>
 
               {/* Blur Spread */}

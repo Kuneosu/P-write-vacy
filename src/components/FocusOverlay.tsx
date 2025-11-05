@@ -14,7 +14,7 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
 }) => {
   if (!isActive) return null;
 
-  const { radiusX, radiusY, blurColor, blurOpacity, blurSpread, focusShape } = settings;
+  const { radiusX, radiusY, blurColor, blurOpacity, blurSpread, blurIntensity, focusShape } = settings;
 
   // Convert hex color to rgba
   const hexToRgba = (hex: string, opacity: number) => {
@@ -61,8 +61,8 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
     height: '100%',
     pointerEvents: 'none',
     zIndex: 10,
-    backdropFilter: 'blur(7px)',
-    WebkitBackdropFilter: 'blur(7px)',
+    backdropFilter: `blur(${blurIntensity}px)`,
+    WebkitBackdropFilter: `blur(${blurIntensity}px)`,
     // @ts-ignore - mask is not in CSSProperties but works
     mask: maskValue,
     WebkitMask: maskValue,
