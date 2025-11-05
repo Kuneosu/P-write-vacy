@@ -29,6 +29,7 @@ function App() {
   const [focusSettings, setFocusSettings] = useState<FocusSettings>(
     DEFAULT_FOCUS_SETTINGS
   );
+  const [isHovered, setIsHovered] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -147,6 +148,8 @@ function App() {
     <div
       className="w-screen h-screen overflow-hidden"
       style={{ backgroundColor: focusSettings.backgroundColor }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* macOS 드래그 영역 */}
       <div
@@ -168,7 +171,10 @@ function App() {
         onContentChange={handleContentChange}
       />
 
-      <SettingsButton onClick={() => setSidebarOpen(true)} />
+      <SettingsButton
+        onClick={() => setSidebarOpen(true)}
+        isVisible={isHovered || sidebarOpen}
+      />
 
       <Sidebar
         isOpen={sidebarOpen}

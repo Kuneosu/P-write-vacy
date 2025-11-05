@@ -75,16 +75,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity"
+          className="fixed inset-0 bg-black bg-opacity-30 transition-opacity"
+          style={{ zIndex: 140 }}
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
+        style={{ zIndex: 150 }}
       >
         <div className="h-full flex flex-col">
           {/* Header */}
@@ -93,6 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
               aria-label="닫기"
             >
               <svg

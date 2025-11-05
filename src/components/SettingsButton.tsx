@@ -2,14 +2,20 @@ import React from 'react';
 
 interface SettingsButtonProps {
   onClick: () => void;
+  isVisible: boolean;
 }
 
-export const SettingsButton: React.FC<SettingsButtonProps> = ({ onClick }) => {
+export const SettingsButton: React.FC<SettingsButtonProps> = ({ onClick, isVisible }) => {
   return (
     <button
       onClick={onClick}
-      className="fixed top-4 right-4 z-30 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 group"
-      style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      className="fixed top-4 right-4 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+      style={{
+        WebkitAppRegion: 'no-drag',
+        zIndex: 150,
+        opacity: isVisible ? 1 : 0,
+        pointerEvents: isVisible ? 'auto' : 'none',
+      } as React.CSSProperties}
       aria-label="설정"
     >
       <svg
