@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Editor } from './components/Editor';
 import { Sidebar } from './components/Sidebar';
 import { SettingsButton } from './components/SettingsButton';
+import { FileExplorer } from './components/FileExplorer';
 import type { FocusSettings } from './types';
 
 const STORAGE_KEYS = {
@@ -30,6 +31,13 @@ function App() {
     DEFAULT_FOCUS_SETTINGS
   );
   const [isHovered, setIsHovered] = useState(false);
+
+  // File Explorer state
+  const [fileExplorerOpen, setFileExplorerOpen] = useState(false);
+  const [currentFolder, setCurrentFolder] = useState<string | null>(null);
+  const [currentFile, setCurrentFile] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -138,11 +146,74 @@ function App() {
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
+    if (currentFile) {
+      setHasUnsavedChanges(true);
+    }
   };
 
   const handleSettingsChange = (newSettings: FocusSettings) => {
     setFocusSettings(newSettings);
   };
+
+  // File Explorer handlers
+  const handleSelectFolder = async () => {
+    if (!window.electron) return;
+    const folderPath = await window.electron.selectFolder();
+    if (folderPath) {
+      setCurrentFolder(folderPath);
+      setFileExplorerOpen(true);
+    }
+  };
+
+  const handleSelectFile = async (filePath: string) => {
+    if (!window.electron) return;
+
+    // Save current file if there are unsaved changes
+    if (currentFile && hasUnsavedChanges) {
+      await window.electron.writeFile(currentFile, content);
+      setHasUnsavedChanges(false);
+    }
+
+    // Load new file
+    const result = await window.electron.readFile(filePath);
+    if (result.success && result.content !== undefined) {
+      setCurrentFile(filePath);
+      setContent(result.content);
+      setHasUnsavedChanges(false);
+    } else {
+      console.error('Failed to read file:', result.error);
+      alert('파일 읽기 실패: ' + result.error);
+    }
+  };
+
+  const handleCreateFile = async (fileName: string) => {
+    if (!window.electron || !currentFolder) return;
+
+    const result = await window.electron.createFile(currentFolder, fileName);
+    if (result.success && result.path) {
+      setCurrentFile(result.path);
+      setContent('');
+      setHasUnsavedChanges(false);
+      // Trigger file list reload
+      setRefreshTrigger(prev => prev + 1);
+    } else {
+      alert('파일 생성 실패: ' + result.error);
+    }
+  };
+
+  // Auto-save current file
+  useEffect(() => {
+    if (!currentFile || !hasUnsavedChanges || !window.electron) return;
+
+    const timeoutId = setTimeout(async () => {
+      const result = await window.electron.writeFile(currentFile, content);
+      if (result.success) {
+        setHasUnsavedChanges(false);
+      }
+    }, 1000); // Save after 1 second of inactivity
+
+    return () => clearTimeout(timeoutId);
+  }, [content, currentFile, hasUnsavedChanges]);
 
   return (
     <div
@@ -164,11 +235,49 @@ function App() {
         } as React.CSSProperties}
       />
 
+      {/* 파일 탐색기 토글 버튼 */}
+      <button
+        onClick={() => setFileExplorerOpen((prev) => !prev)}
+        className="fixed top-4 left-4 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+        style={{
+          WebkitAppRegion: 'no-drag',
+          zIndex: 150,
+          opacity: isHovered || fileExplorerOpen ? 1 : 0,
+          pointerEvents: isHovered || fileExplorerOpen ? 'auto' : 'none',
+        } as React.CSSProperties}
+        aria-label="파일 탐색기"
+      >
+        <svg
+          className="w-6 h-6 text-gray-700 transition-transform duration-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+          />
+        </svg>
+      </button>
+
+      <FileExplorer
+        isOpen={fileExplorerOpen}
+        currentFolder={currentFolder}
+        currentFile={currentFile}
+        onSelectFolder={handleSelectFolder}
+        onSelectFile={handleSelectFile}
+        onCreateFile={handleCreateFile}
+        refreshTrigger={refreshTrigger}
+      />
+
       <Editor
         privacyActive={privacyActive}
         focusSettings={focusSettings}
         content={content}
         onContentChange={handleContentChange}
+        fileExplorerOpen={fileExplorerOpen}
       />
 
       <SettingsButton
