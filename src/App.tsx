@@ -3,6 +3,7 @@ import { Editor } from "./components/Editor";
 import { Sidebar } from "./components/Sidebar";
 import { SettingsButton } from "./components/SettingsButton";
 import { FileExplorer } from "./components/FileExplorer";
+import { MarkdownViewer } from "./components/MarkdownViewer";
 import type { FocusSettings } from "./types";
 
 const STORAGE_KEYS = {
@@ -38,6 +39,17 @@ function App() {
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Markdown viewer state
+  const [isMarkdownViewMode, setIsMarkdownViewMode] = useState(false);
+
+  // Check if current file is markdown
+  const isMarkdownFile = currentFile?.toLowerCase().match(/\.(md|markdown)$/) !== null;
+
+  // Reset markdown view mode when file changes
+  useEffect(() => {
+    setIsMarkdownViewMode(false);
+  }, [currentFile]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -282,13 +294,78 @@ function App() {
         refreshTrigger={refreshTrigger}
       />
 
-      <Editor
-        privacyActive={privacyActive}
-        focusSettings={focusSettings}
-        content={content}
-        onContentChange={handleContentChange}
-        fileExplorerOpen={fileExplorerOpen}
-      />
+      {isMarkdownViewMode ? (
+        <MarkdownViewer
+          content={content}
+          privacyActive={privacyActive}
+          focusSettings={focusSettings}
+          fileExplorerOpen={fileExplorerOpen}
+        />
+      ) : (
+        <Editor
+          privacyActive={privacyActive}
+          focusSettings={focusSettings}
+          content={content}
+          onContentChange={handleContentChange}
+          fileExplorerOpen={fileExplorerOpen}
+        />
+      )}
+
+      {/* Markdown viewer toggle button */}
+      {isMarkdownFile && (
+        <button
+          onClick={() => setIsMarkdownViewMode((prev) => !prev)}
+          className="fixed p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+          style={
+            {
+              WebkitAppRegion: "no-drag",
+              zIndex: 150,
+              top: "16px",
+              right: "68px",
+              opacity: isHovered || sidebarOpen ? 1 : 0,
+              pointerEvents: isHovered || sidebarOpen ? "auto" : "none",
+              transition: "all 0.3s ease",
+            } as React.CSSProperties
+          }
+          aria-label={isMarkdownViewMode ? "편집 모드" : "마크다운 뷰어"}
+        >
+          {isMarkdownViewMode ? (
+            <svg
+              className="w-6 h-6 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-6 h-6 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+          )}
+        </button>
+      )}
 
       <SettingsButton
         onClick={() => setSidebarOpen(true)}
