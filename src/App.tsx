@@ -81,6 +81,54 @@ function App() {
         e.preventDefault();
         setPrivacyActive((prev) => !prev);
       }
+
+      // Ctrl+9: 가로 크기 감소
+      if (e.ctrlKey && e.code === 'Digit9') {
+        e.preventDefault();
+        setFocusSettings((prev) => {
+          const newRadiusX = Math.max(30, prev.radiusX - 5);
+          if (prev.focusShape === 'circle') {
+            return { ...prev, radiusX: newRadiusX, radiusY: newRadiusX };
+          }
+          return { ...prev, radiusX: newRadiusX };
+        });
+      }
+
+      // Ctrl+0: 가로 크기 증가
+      if (e.ctrlKey && e.code === 'Digit0') {
+        e.preventDefault();
+        setFocusSettings((prev) => {
+          const newRadiusX = Math.min(150, prev.radiusX + 5);
+          if (prev.focusShape === 'circle') {
+            return { ...prev, radiusX: newRadiusX, radiusY: newRadiusX };
+          }
+          return { ...prev, radiusX: newRadiusX };
+        });
+      }
+
+      // Ctrl+-: 세로 크기 감소
+      if (e.ctrlKey && e.code === 'Minus') {
+        e.preventDefault();
+        setFocusSettings((prev) => {
+          const newRadiusY = Math.max(15, prev.radiusY - 5);
+          if (prev.focusShape === 'circle') {
+            return { ...prev, radiusX: newRadiusY, radiusY: newRadiusY };
+          }
+          return { ...prev, radiusY: newRadiusY };
+        });
+      }
+
+      // Ctrl+=: 세로 크기 증가
+      if (e.ctrlKey && e.code === 'Equal') {
+        e.preventDefault();
+        setFocusSettings((prev) => {
+          const newRadiusY = Math.min(100, prev.radiusY + 5);
+          if (prev.focusShape === 'circle') {
+            return { ...prev, radiusX: newRadiusY, radiusY: newRadiusY };
+          }
+          return { ...prev, radiusY: newRadiusY };
+        });
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);

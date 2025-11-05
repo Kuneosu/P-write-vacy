@@ -20,8 +20,12 @@ export const Editor: React.FC<EditorProps> = ({
   const { caretPosition } = useCaretTracking(editorRef);
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.textContent !== content) {
-      editorRef.current.textContent = content;
+    if (editorRef.current) {
+      if (editorRef.current.textContent !== content) {
+        editorRef.current.textContent = content;
+      }
+      // 초기 마운트 시 에디터에 포커스 주기
+      editorRef.current.focus();
     }
   }, []);
 

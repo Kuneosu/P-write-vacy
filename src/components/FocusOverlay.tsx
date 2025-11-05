@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { CaretPosition, FocusSettings } from '../types';
 
 interface FocusOverlayProps {
@@ -12,6 +12,19 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
   caretPosition,
   settings
 }) => {
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    if (isActive) {
+      // 활성화 시 자연스럽게 나타남
+      const timer = setTimeout(() => setOpacity(1), 50);
+      return () => clearTimeout(timer);
+    } else {
+      // 비활성화 시 즉시 사라짐
+      setOpacity(0);
+    }
+  }, [isActive]);
+
   if (!isActive) return null;
 
   const { radiusX, radiusY, blurColor, blurOpacity, blurSpread, blurIntensity, focusShape } = settings;
@@ -78,6 +91,8 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
     backdropFilter: `blur(${blurIntensity}px)`,
     WebkitBackdropFilter: `blur(${blurIntensity}px)`,
     background: blurColorRgba,
+    opacity: opacity,
+    transition: 'opacity 0.4s ease-out, backdrop-filter 0.4s ease-out',
     // @ts-ignore - mask properties are not in CSSProperties but work
     ...maskStyles
   };
