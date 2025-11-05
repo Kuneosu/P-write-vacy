@@ -76,8 +76,8 @@ function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+H: Toggle privacy
-      if (e.ctrlKey && e.key === 'h') {
+      // Ctrl+H: Toggle privacy (한국어 자판에서도 작동)
+      if (e.ctrlKey && e.code === 'KeyH') {
         e.preventDefault();
         setPrivacyActive((prev) => !prev);
       }
