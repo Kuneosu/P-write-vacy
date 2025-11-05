@@ -6,6 +6,7 @@ export interface ElectronAPI {
   createFile: (folderPath: string, fileName: string) => Promise<{ success: boolean; path?: string; error?: string }>;
   deleteFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   renameFile: (oldPath: string, newPath: string) => Promise<{ success: boolean; error?: string }>;
+  createFolder: (parentPath: string, folderName: string) => Promise<{ success: boolean; path?: string; error?: string }>;
 }
 
 export interface FileEntry {
@@ -14,7 +15,16 @@ export interface FileEntry {
   type: 'file' | 'directory';
   ext?: string;
   modified?: Date;
+  created?: Date;
 }
+
+export type SortOrder =
+  | 'name-asc'
+  | 'name-desc'
+  | 'modified-desc'
+  | 'modified-asc'
+  | 'created-desc'
+  | 'created-asc';
 
 declare global {
   interface Window {

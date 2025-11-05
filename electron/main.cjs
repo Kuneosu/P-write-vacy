@@ -70,17 +70,18 @@ ipcMain.handle('read-directory', async (event, folderPath) => {
 
     for (const entry of entries) {
       const fullPath = path.join(folderPath, entry.name);
+      const stats = await fs.stat(fullPath);
 
       if (entry.isFile()) {
         const ext = path.extname(entry.name).toLowerCase();
         if (SUPPORTED_EXTENSIONS.includes(ext)) {
-          const stats = await fs.stat(fullPath);
           files.push({
             name: entry.name,
             path: fullPath,
             type: 'file',
             ext: ext,
             modified: stats.mtime,
+            created: stats.birthtime,
           });
         }
       } else if (entry.isDirectory() && !entry.name.startsWith('.')) {
@@ -88,16 +89,13 @@ ipcMain.handle('read-directory', async (event, folderPath) => {
           name: entry.name,
           path: fullPath,
           type: 'directory',
+          modified: stats.mtime,
+          created: stats.birthtime,
         });
       }
     }
 
-    return files.sort((a, b) => {
-      if (a.type === b.type) {
-        return a.name.localeCompare(b.name);
-      }
-      return a.type === 'directory' ? -1 : 1;
-    });
+    return files;
   } catch (error) {
     console.error('Error reading directory:', error);
     return [];
@@ -150,6 +148,17 @@ ipcMain.handle('rename-file', async (event, oldPath, newPath) => {
   try {
     await fs.rename(oldPath, newPath);
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// 폴더 생성
+ipcMain.handle('create-folder', async (event, parentPath, folderName) => {
+  try {
+    const folderPath = path.join(parentPath, folderName);
+    await fs.mkdir(folderPath);
+    return { success: true, path: folderPath };
   } catch (error) {
     return { success: false, error: error.message };
   }

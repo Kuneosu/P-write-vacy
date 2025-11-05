@@ -1,32 +1,32 @@
-import { useState, useEffect } from 'react';
-import { Editor } from './components/Editor';
-import { Sidebar } from './components/Sidebar';
-import { SettingsButton } from './components/SettingsButton';
-import { FileExplorer } from './components/FileExplorer';
-import type { FocusSettings } from './types';
+import { useState, useEffect } from "react";
+import { Editor } from "./components/Editor";
+import { Sidebar } from "./components/Sidebar";
+import { SettingsButton } from "./components/SettingsButton";
+import { FileExplorer } from "./components/FileExplorer";
+import type { FocusSettings } from "./types";
 
 const STORAGE_KEYS = {
-  CONTENT: 'p-write-vacy-content',
-  PRIVACY_ACTIVE: 'p-write-vacy-privacy',
-  FOCUS_SETTINGS: 'p-write-vacy-focus-settings',
+  CONTENT: "p-write-vacy-content",
+  PRIVACY_ACTIVE: "p-write-vacy-privacy",
+  FOCUS_SETTINGS: "p-write-vacy-focus-settings",
 };
 
 const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
   radiusX: 60,
   radiusY: 30,
-  blurColor: '#000000',
+  blurColor: "#000000",
   blurOpacity: 0.3,
   blurSpread: 50, // 테두리 번짐 정도 (0-100)
   blurIntensity: 7, // 블러 강도 (0-20px)
-  focusShape: 'ellipse', // 기본값: 타원형
-  backgroundColor: '#ffffff', // 기본 배경색: 흰색
-  textColor: '#000000', // 기본 텍스트색: 검정
+  focusShape: "ellipse", // 기본값: 타원형
+  backgroundColor: "#ffffff", // 기본 배경색: 흰색
+  textColor: "#000000", // 기본 텍스트색: 검정
 };
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [privacyActive, setPrivacyActive] = useState(true);
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [focusSettings, setFocusSettings] = useState<FocusSettings>(
     DEFAULT_FOCUS_SETTINGS
   );
@@ -50,7 +50,7 @@ function App() {
     }
 
     if (savedPrivacy !== null) {
-      setPrivacyActive(savedPrivacy === 'true');
+      setPrivacyActive(savedPrivacy === "true");
     }
 
     if (savedSettings) {
@@ -58,7 +58,7 @@ function App() {
         const parsedSettings = JSON.parse(savedSettings);
         setFocusSettings({ ...DEFAULT_FOCUS_SETTINGS, ...parsedSettings });
       } catch (e) {
-        console.error('Failed to parse focus settings:', e);
+        console.error("Failed to parse focus settings:", e);
       }
     }
   }, []);
@@ -79,24 +79,27 @@ function App() {
 
   // Save focus settings to localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.FOCUS_SETTINGS, JSON.stringify(focusSettings));
+    localStorage.setItem(
+      STORAGE_KEYS.FOCUS_SETTINGS,
+      JSON.stringify(focusSettings)
+    );
   }, [focusSettings]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ctrl+H: Toggle privacy (한국어 자판에서도 작동)
-      if (e.ctrlKey && e.code === 'KeyH') {
+      if (e.ctrlKey && e.code === "KeyH") {
         e.preventDefault();
         setPrivacyActive((prev) => !prev);
       }
 
       // Ctrl+9: 가로 크기 감소
-      if (e.ctrlKey && e.code === 'Digit9') {
+      if (e.ctrlKey && e.code === "Digit9") {
         e.preventDefault();
         setFocusSettings((prev) => {
           const newRadiusX = Math.max(30, prev.radiusX - 5);
-          if (prev.focusShape === 'circle') {
+          if (prev.focusShape === "circle") {
             return { ...prev, radiusX: newRadiusX, radiusY: newRadiusX };
           }
           return { ...prev, radiusX: newRadiusX };
@@ -104,11 +107,11 @@ function App() {
       }
 
       // Ctrl+0: 가로 크기 증가
-      if (e.ctrlKey && e.code === 'Digit0') {
+      if (e.ctrlKey && e.code === "Digit0") {
         e.preventDefault();
         setFocusSettings((prev) => {
           const newRadiusX = Math.min(150, prev.radiusX + 5);
-          if (prev.focusShape === 'circle') {
+          if (prev.focusShape === "circle") {
             return { ...prev, radiusX: newRadiusX, radiusY: newRadiusX };
           }
           return { ...prev, radiusX: newRadiusX };
@@ -116,11 +119,11 @@ function App() {
       }
 
       // Ctrl+-: 세로 크기 감소
-      if (e.ctrlKey && e.code === 'Minus') {
+      if (e.ctrlKey && e.code === "Minus") {
         e.preventDefault();
         setFocusSettings((prev) => {
           const newRadiusY = Math.max(15, prev.radiusY - 5);
-          if (prev.focusShape === 'circle') {
+          if (prev.focusShape === "circle") {
             return { ...prev, radiusX: newRadiusY, radiusY: newRadiusY };
           }
           return { ...prev, radiusY: newRadiusY };
@@ -128,11 +131,11 @@ function App() {
       }
 
       // Ctrl+=: 세로 크기 증가
-      if (e.ctrlKey && e.code === 'Equal') {
+      if (e.ctrlKey && e.code === "Equal") {
         e.preventDefault();
         setFocusSettings((prev) => {
           const newRadiusY = Math.min(100, prev.radiusY + 5);
-          if (prev.focusShape === 'circle') {
+          if (prev.focusShape === "circle") {
             return { ...prev, radiusX: newRadiusY, radiusY: newRadiusY };
           }
           return { ...prev, radiusY: newRadiusY };
@@ -140,8 +143,8 @@ function App() {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const handleContentChange = (newContent: string) => {
@@ -181,8 +184,8 @@ function App() {
       setContent(result.content);
       setHasUnsavedChanges(false);
     } else {
-      console.error('Failed to read file:', result.error);
-      alert('파일 읽기 실패: ' + result.error);
+      console.error("Failed to read file:", result.error);
+      alert("파일 읽기 실패: " + result.error);
     }
   };
 
@@ -192,12 +195,12 @@ function App() {
     const result = await window.electron.createFile(currentFolder, fileName);
     if (result.success && result.path) {
       setCurrentFile(result.path);
-      setContent('');
+      setContent("");
       setHasUnsavedChanges(false);
       // Trigger file list reload
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } else {
-      alert('파일 생성 실패: ' + result.error);
+      alert("파일 생성 실패: " + result.error);
     }
   };
 
@@ -224,27 +227,34 @@ function App() {
     >
       {/* macOS 드래그 영역 */}
       <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '52px',
-          WebkitAppRegion: 'drag',
-          zIndex: 100,
-        } as React.CSSProperties}
+        style={
+          {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "52px",
+            WebkitAppRegion: "drag",
+            zIndex: 100,
+          } as React.CSSProperties
+        }
       />
 
       {/* 파일 탐색기 토글 버튼 */}
       <button
         onClick={() => setFileExplorerOpen((prev) => !prev)}
-        className="fixed top-4 left-4 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
-        style={{
-          WebkitAppRegion: 'no-drag',
-          zIndex: 150,
-          opacity: isHovered || fileExplorerOpen ? 1 : 0,
-          pointerEvents: isHovered || fileExplorerOpen ? 'auto' : 'none',
-        } as React.CSSProperties}
+        className="fixed p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+        style={
+          {
+            WebkitAppRegion: "no-drag",
+            zIndex: 150,
+            top: fileExplorerOpen ? "10px" : "10px",
+            left: fileExplorerOpen ? "200px" : "100px",
+            opacity: isHovered || fileExplorerOpen ? 1 : 0,
+            pointerEvents: isHovered || fileExplorerOpen ? "auto" : "none",
+            transition: "all 0.3s ease",
+          } as React.CSSProperties
+        }
         aria-label="파일 탐색기"
       >
         <svg

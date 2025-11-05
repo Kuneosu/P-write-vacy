@@ -21,4 +21,7 @@ contextBridge.exposeInMainWorld('electron', {
 
   // 파일 이름 변경
   renameFile: (oldPath, newPath) => ipcRenderer.invoke('rename-file', oldPath, newPath),
+
+  // 폴더 생성
+  createFolder: (parentPath, folderName) => ipcRenderer.invoke('create-folder', parentPath, folderName),
 });
