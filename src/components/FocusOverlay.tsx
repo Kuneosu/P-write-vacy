@@ -5,12 +5,14 @@ interface FocusOverlayProps {
   isActive: boolean;
   caretPosition: CaretPosition;
   settings: FocusSettings;
+  hasInteracted?: boolean;
 }
 
 export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
   isActive,
   caretPosition,
-  settings
+  settings,
+  hasInteracted = true
 }) => {
   const [opacity, setOpacity] = useState(0);
 
@@ -26,6 +28,31 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
   }, [isActive]);
 
   if (!isActive) return null;
+
+  // 상호작용 전: 전체 블러
+  if (!hasInteracted) {
+    const blurColorRgba = `rgba(${parseInt(settings.blurColor.slice(1, 3), 16)}, ${parseInt(settings.blurColor.slice(3, 5), 16)}, ${parseInt(settings.blurColor.slice(5, 7), 16)}, ${settings.blurOpacity})`;
+
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 10,
+          backdropFilter: `blur(${settings.blurIntensity}px)`,
+          WebkitBackdropFilter: `blur(${settings.blurIntensity}px)`,
+          background: blurColorRgba,
+          opacity: opacity,
+          transition: 'opacity 0.4s ease-out',
+        }}
+        className="focus-overlay"
+      />
+    );
+  }
 
   const { radiusX, radiusY, blurColor, blurOpacity, blurSpread, blurIntensity, focusShape } = settings;
 

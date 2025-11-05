@@ -19,6 +19,12 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState<CaretPosition>({ x: 50, y: 50 });
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  // Reset interaction state when content changes (file switch)
+  useEffect(() => {
+    setHasInteracted(false);
+  }, [content]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -27,6 +33,9 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
         setMousePosition({ x, y });
+        if (!hasInteracted) {
+          setHasInteracted(true);
+        }
       }
     };
 
@@ -35,7 +44,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
       container.addEventListener('mousemove', handleMouseMove);
       return () => container.removeEventListener('mousemove', handleMouseMove);
     }
-  }, []);
+  }, [hasInteracted]);
 
   return (
     <div
@@ -47,6 +56,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         isActive={privacyActive}
         caretPosition={mousePosition}
         settings={focusSettings}
+        hasInteracted={hasInteracted}
       />
       <div
         className="h-full overflow-y-auto px-8 py-20"

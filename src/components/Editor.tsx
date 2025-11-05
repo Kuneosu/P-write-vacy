@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useCaretTracking } from '../hooks/useCaretTracking';
 import { FocusOverlay } from './FocusOverlay';
 import type { FocusSettings } from '../types';
@@ -20,6 +20,12 @@ export const Editor: React.FC<EditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const { caretPosition } = useCaretTracking(editorRef);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  // Reset interaction state when content changes (file switch)
+  useEffect(() => {
+    setHasInteracted(false);
+  }, [content]);
 
   useEffect(() => {
     if (editorRef.current) {
@@ -59,6 +65,12 @@ export const Editor: React.FC<EditorProps> = ({
     onContentChange(newContent);
   };
 
+  const handleEditorInteraction = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
+  };
+
   return (
     <div
       className="relative w-full h-full overflow-hidden"
@@ -68,11 +80,14 @@ export const Editor: React.FC<EditorProps> = ({
         isActive={privacyActive}
         caretPosition={caretPosition}
         settings={focusSettings}
+        hasInteracted={hasInteracted}
       />
       <div
         ref={editorRef}
         contentEditable
         onInput={handleInput}
+        onClick={handleEditorInteraction}
+        onFocus={handleEditorInteraction}
         className="w-full h-full focus:outline-none text-lg leading-relaxed font-serif overflow-y-auto"
         style={{
           whiteSpace: 'pre-wrap',
