@@ -48,11 +48,12 @@ export const Editor: React.FC<EditorProps> = ({
         ref={editorRef}
         contentEditable
         onInput={handleInput}
-        className="w-full h-full p-8 focus:outline-none text-lg leading-relaxed font-serif overflow-y-auto"
+        className="w-full h-full focus:outline-none text-lg leading-relaxed font-serif overflow-y-auto"
         style={{
           whiteSpace: 'pre-wrap',
           wordWrap: 'break-word',
-          color: focusSettings.textColor
+          color: focusSettings.textColor,
+          padding: '60px 32px 32px 32px', // 상단 여유 공간 추가
         }}
         data-placeholder="여기에 사적인 글을 작성하세요...&#10;&#10;텍스트를 입력하면 커서 주변만 선명하게 보입니다."
       />

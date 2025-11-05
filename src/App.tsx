@@ -144,7 +144,23 @@ function App() {
   };
 
   return (
-    <div className="w-screen h-screen overflow-hidden bg-gray-50">
+    <div
+      className="w-screen h-screen overflow-hidden"
+      style={{ backgroundColor: focusSettings.backgroundColor }}
+    >
+      {/* macOS 드래그 영역 */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '52px',
+          WebkitAppRegion: 'drag',
+          zIndex: 100,
+        } as React.CSSProperties}
+      />
+
       <Editor
         privacyActive={privacyActive}
         focusSettings={focusSettings}
