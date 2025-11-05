@@ -23,23 +23,25 @@ export const Editor: React.FC<EditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const { caretPosition } = useCaretTracking(editorRef);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const isUserInputRef = useRef(false);
 
   // Reset interaction state when file changes (not when content changes)
   useEffect(() => {
     setHasInteracted(false);
   }, [currentFile]);
 
+  // Update editor content only when file changes (external update)
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && !isUserInputRef.current) {
       // 현재 포커스와 커서 위치 저장
       const hasFocus = document.activeElement === editorRef.current;
       const selection = window.getSelection();
       const range = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
       const cursorOffset = range ? range.startOffset : 0;
 
-      // 내용이 다를 때만 업데이트
-      if (editorRef.current.textContent !== content) {
-        editorRef.current.textContent = content;
+      // 내용이 다를 때만 업데이트 (innerText 사용으로 줄바꿈 보존)
+      if (editorRef.current.innerText !== content) {
+        editorRef.current.innerText = content;
 
         // 포커스와 커서 위치 복원
         if (hasFocus) {
@@ -60,10 +62,14 @@ export const Editor: React.FC<EditorProps> = ({
         }
       }
     }
-  }, [content]);
+    // Reset the flag after processing external updates
+    isUserInputRef.current = false;
+  }, [content, currentFile]);
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const newContent = e.currentTarget.textContent || '';
+    // innerText 사용으로 줄바꿈 보존
+    const newContent = e.currentTarget.innerText || '';
+    isUserInputRef.current = true; // Mark as user input to prevent editor update
     onContentChange(newContent);
   };
 

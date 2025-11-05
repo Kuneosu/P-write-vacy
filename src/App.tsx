@@ -165,8 +165,11 @@ function App() {
   }, []);
 
   const handleContentChange = (newContent: string) => {
+    console.log('Content changed (length:', newContent.length, ')');
+    console.log('Has newlines:', newContent.includes('\n'));
     setContent(newContent);
     if (currentFile) {
+      console.log('Marking as unsaved');
       setHasUnsavedChanges(true);
     }
   };
@@ -197,6 +200,9 @@ function App() {
     // Load new file
     const result = await window.electron.readFile(filePath);
     if (result.success && result.content !== undefined) {
+      console.log('Loaded file:', filePath);
+      console.log('File content (length:', result.content.length, ')');
+      console.log('Has newlines:', result.content.includes('\n'));
       setCurrentFile(filePath);
       setContent(result.content);
       setHasUnsavedChanges(false);
@@ -226,9 +232,14 @@ function App() {
     if (!currentFile || !hasUnsavedChanges || !window.electron) return;
 
     const timeoutId = setTimeout(async () => {
+      console.log('Auto-saving file:', currentFile);
+      console.log('Content to save (length:', content.length, '):', content.substring(0, 100));
       const result = await window.electron.writeFile(currentFile, content);
       if (result.success) {
+        console.log('File saved successfully');
         setHasUnsavedChanges(false);
+      } else {
+        console.error('Failed to save file:', result.error);
       }
     }, 1000); // Save after 1 second of inactivity
 
