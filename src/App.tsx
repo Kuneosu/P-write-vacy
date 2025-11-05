@@ -18,6 +18,8 @@ const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
   blurSpread: 50, // 테두리 번짐 정도 (0-100)
   blurIntensity: 7, // 블러 강도 (0-20px)
   focusShape: 'ellipse', // 기본값: 타원형
+  backgroundColor: '#ffffff', // 기본 배경색: 흰색
+  textColor: '#000000', // 기본 텍스트색: 검정
 };
 
 function App() {

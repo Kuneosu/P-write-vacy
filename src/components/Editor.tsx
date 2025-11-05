@@ -31,7 +31,10 @@ export const Editor: React.FC<EditorProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full bg-white overflow-hidden">
+    <div
+      className="relative w-full h-full overflow-hidden"
+      style={{ backgroundColor: focusSettings.backgroundColor }}
+    >
       <FocusOverlay
         isActive={privacyActive}
         caretPosition={caretPosition}
@@ -41,8 +44,12 @@ export const Editor: React.FC<EditorProps> = ({
         ref={editorRef}
         contentEditable
         onInput={handleInput}
-        className="w-full h-full p-8 focus:outline-none text-gray-800 text-lg leading-relaxed font-serif overflow-y-auto"
-        style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+        className="w-full h-full p-8 focus:outline-none text-lg leading-relaxed font-serif overflow-y-auto"
+        style={{
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          color: focusSettings.textColor
+        }}
         data-placeholder="여기에 사적인 글을 작성하세요...&#10;&#10;텍스트를 입력하면 커서 주변만 선명하게 보입니다."
       />
       <style>{`

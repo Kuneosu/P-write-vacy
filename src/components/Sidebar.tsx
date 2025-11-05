@@ -62,6 +62,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const handleBackgroundColorChange = (color: string) => {
+    onSettingsChange({ ...focusSettings, backgroundColor: color });
+  };
+
+  const handleTextColorChange = (color: string) => {
+    onSettingsChange({ ...focusSettings, textColor: color });
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -223,6 +231,70 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </>
               )}
+
+              {/* Blur Spread */}
+              <div className="space-y-2">
+                <label className="flex items-center justify-between text-sm text-gray-700">
+                  <span>테두리 번짐</span>
+                  <span className="font-mono text-blue-600">
+                    {focusSettings.blurSpread}
+                  </span>
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={focusSettings.blurSpread}
+                  onChange={(e) => handleBlurSpreadChange(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <p className="text-xs text-gray-500">
+                  포커스 영역 테두리의 번지는 정도를 조절합니다
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-4">
+                에디터 스타일
+              </h3>
+
+              {/* Background Color */}
+              <div className="space-y-2 mb-4">
+                <label className="flex items-center justify-between text-sm text-gray-700">
+                  <span>배경 색상</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={focusSettings.backgroundColor}
+                      onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                      className="w-10 h-8 rounded cursor-pointer"
+                    />
+                    <span className="font-mono text-xs text-gray-500">
+                      {focusSettings.backgroundColor}
+                    </span>
+                  </div>
+                </label>
+              </div>
+
+              {/* Text Color */}
+              <div className="space-y-2 mb-4">
+                <label className="flex items-center justify-between text-sm text-gray-700">
+                  <span>텍스트 색상</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={focusSettings.textColor}
+                      onChange={(e) => handleTextColorChange(e.target.value)}
+                      className="w-10 h-8 rounded cursor-pointer"
+                    />
+                    <span className="font-mono text-xs text-gray-500">
+                      {focusSettings.textColor}
+                    </span>
+                  </div>
+                </label>
+              </div>
             </div>
 
             <div className="border-t border-gray-200 pt-6">
@@ -233,7 +305,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Color */}
               <div className="space-y-2 mb-4">
                 <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>색상</span>
+                  <span>블러 색상</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -268,7 +340,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {/* Blur Intensity */}
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
                   <span>블러 강도</span>
                   <span className="font-mono text-blue-600">
@@ -286,28 +358,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 />
                 <p className="text-xs text-gray-500">
                   블러 효과의 강도를 조절합니다
-                </p>
-              </div>
-
-              {/* Blur Spread */}
-              <div className="space-y-2">
-                <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>테두리 번짐</span>
-                  <span className="font-mono text-blue-600">
-                    {focusSettings.blurSpread}
-                  </span>
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={focusSettings.blurSpread}
-                  onChange={(e) => handleBlurSpreadChange(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-                <p className="text-xs text-gray-500">
-                  포커스 영역 테두리의 번지는 정도를 조절합니다
                 </p>
               </div>
             </div>
