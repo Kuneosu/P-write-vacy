@@ -51,15 +51,18 @@ function App() {
     setIsMarkdownViewMode(false);
   }, [currentFile]);
 
+  // Clear content when no folder is selected
+  useEffect(() => {
+    if (!currentFolder) {
+      setContent("");
+      setCurrentFile(null);
+    }
+  }, [currentFolder]);
+
   // Load from localStorage on mount
   useEffect(() => {
-    const savedContent = localStorage.getItem(STORAGE_KEYS.CONTENT);
     const savedPrivacy = localStorage.getItem(STORAGE_KEYS.PRIVACY_ACTIVE);
     const savedSettings = localStorage.getItem(STORAGE_KEYS.FOCUS_SETTINGS);
-
-    if (savedContent) {
-      setContent(savedContent);
-    }
 
     if (savedPrivacy !== null) {
       setPrivacyActive(savedPrivacy === "true");
@@ -75,14 +78,16 @@ function App() {
     }
   }, []);
 
-  // Save content to localStorage
+  // Save content to localStorage only when folder is selected
   useEffect(() => {
+    if (!currentFolder) return;
+
     const timeoutId = setTimeout(() => {
       localStorage.setItem(STORAGE_KEYS.CONTENT, content);
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [content]);
+  }, [content, currentFolder]);
 
   // Save privacy state to localStorage
   useEffect(() => {
@@ -294,7 +299,35 @@ function App() {
         refreshTrigger={refreshTrigger}
       />
 
-      {isMarkdownViewMode ? (
+      {!currentFolder ? (
+        <div
+          className="w-full h-full flex items-center justify-center"
+          style={{ backgroundColor: focusSettings.backgroundColor }}
+        >
+          <button
+            onClick={handleSelectFolder}
+            className="px-8 py-4 bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg font-medium group"
+            style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+          >
+            <div className="flex items-center gap-3">
+              <svg
+                className="w-6 h-6 text-gray-700 group-hover:text-gray-900 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+              <span className="text-gray-700 group-hover:text-gray-900 transition-colors">폴더 선택하기</span>
+            </div>
+          </button>
+        </div>
+      ) : isMarkdownViewMode ? (
         <MarkdownViewer
           content={content}
           privacyActive={privacyActive}
