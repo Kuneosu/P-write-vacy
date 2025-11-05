@@ -9,6 +9,7 @@ interface EditorProps {
   content: string;
   onContentChange: (content: string) => void;
   fileExplorerOpen?: boolean;
+  currentFile?: string | null;
 }
 
 export const Editor: React.FC<EditorProps> = ({
@@ -16,16 +17,17 @@ export const Editor: React.FC<EditorProps> = ({
   focusSettings,
   content,
   onContentChange,
-  fileExplorerOpen = false
+  fileExplorerOpen = false,
+  currentFile
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const { caretPosition } = useCaretTracking(editorRef);
   const [hasInteracted, setHasInteracted] = useState(false);
 
-  // Reset interaction state when content changes (file switch)
+  // Reset interaction state when file changes (not when content changes)
   useEffect(() => {
     setHasInteracted(false);
-  }, [content]);
+  }, [currentFile]);
 
   useEffect(() => {
     if (editorRef.current) {
@@ -88,7 +90,7 @@ export const Editor: React.FC<EditorProps> = ({
         onInput={handleInput}
         onClick={handleEditorInteraction}
         onFocus={handleEditorInteraction}
-        className="w-full h-full focus:outline-none text-lg leading-relaxed font-serif overflow-y-auto"
+        className="w-full h-full focus:outline-none text-lg leading-relaxed overflow-y-auto"
         style={{
           whiteSpace: 'pre-wrap',
           wordWrap: 'break-word',

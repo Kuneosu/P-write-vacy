@@ -17,21 +17,35 @@ export const useCaretTracking = (editorRef: RefObject<HTMLDivElement>) => {
       };
     }
 
-    const range = selection.getRangeAt(0).cloneRange();
+    const range = selection.getRangeAt(0);
 
-    // Create temporary span at caret position
-    const span = document.createElement('span');
-    span.textContent = '\u200B'; // zero-width space
-    range.insertNode(span);
+    // Use range.getBoundingClientRect() instead of inserting temporary elements
+    let rect = range.getBoundingClientRect();
 
-    const rect = span.getBoundingClientRect();
+    // If rect has no dimensions (collapsed range at start), use a temporary span
+    if (rect.width === 0 && rect.height === 0) {
+      const clonedRange = range.cloneRange();
+      const span = document.createElement('span');
+      span.textContent = '\u200B'; // zero-width space
+
+      // Save current selection
+      const savedRange = range.cloneRange();
+
+      clonedRange.insertNode(span);
+      rect = span.getBoundingClientRect();
+
+      // Remove temporary span
+      span.parentNode?.removeChild(span);
+
+      // Restore selection
+      selection.removeAllRanges();
+      selection.addRange(savedRange);
+    }
+
     const coordinates: CaretPosition = {
       x: rect.left,
       y: rect.top + rect.height / 2
     };
-
-    // Remove temporary span
-    span.parentNode?.removeChild(span);
 
     return coordinates;
   };

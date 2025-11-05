@@ -9,6 +9,7 @@ interface MarkdownViewerProps {
   privacyActive: boolean;
   focusSettings: FocusSettings;
   fileExplorerOpen: boolean;
+  currentFile?: string | null;
 }
 
 export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
@@ -16,15 +17,16 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   privacyActive,
   focusSettings,
   fileExplorerOpen,
+  currentFile,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState<CaretPosition>({ x: 50, y: 50 });
   const [hasInteracted, setHasInteracted] = useState(false);
 
-  // Reset interaction state when content changes (file switch)
+  // Reset interaction state when file changes (not when content changes)
   useEffect(() => {
     setHasInteracted(false);
-  }, [content]);
+  }, [currentFile]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

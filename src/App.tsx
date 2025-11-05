@@ -333,6 +333,7 @@ function App() {
           privacyActive={privacyActive}
           focusSettings={focusSettings}
           fileExplorerOpen={fileExplorerOpen}
+          currentFile={currentFile}
         />
       ) : (
         <Editor
@@ -341,6 +342,7 @@ function App() {
           content={content}
           onContentChange={handleContentChange}
           fileExplorerOpen={fileExplorerOpen}
+          currentFile={currentFile}
         />
       )}
 
