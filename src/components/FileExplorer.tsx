@@ -22,6 +22,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 }) => {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [folderContents, setFolderContents] = useState<Map<string, FileEntry[]>>(new Map());
   const [isCreatingFile, setIsCreatingFile] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -70,6 +71,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     if (!window.electron) return;
     const entries = await window.electron.readDirectory(folderPath);
     setFiles(entries);
+    // 폴더 내용 캐시 초기화
+    setFolderContents(new Map());
+    setExpandedFolders(new Set());
   };
 
   const sortFiles = (filesToSort: FileEntry[]): FileEntry[] => {
@@ -106,28 +110,15 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       newExpanded.delete(folderPath);
     } else {
       newExpanded.add(folderPath);
+      // 폴더 내용이 아직 로드되지 않았으면 로드
+      if (!folderContents.has(folderPath) && window.electron) {
+        const entries = await window.electron.readDirectory(folderPath);
+        setFolderContents(prev => new Map(prev).set(folderPath, entries));
+      }
     }
     setExpandedFolders(newExpanded);
   };
 
-  const getFileIcon = (entry: FileEntry) => {
-    if (entry.type === 'directory') {
-      return expandedFolders.has(entry.path) ? '📂' : '📁';
-    }
-    switch (entry.ext) {
-      case '.md':
-      case '.markdown':
-        return '📝';
-      case '.txt':
-        return '📄';
-      case '.json':
-        return '📋';
-      case '.log':
-        return '📊';
-      default:
-        return '📄';
-    }
-  };
 
   const handleCreateFileSubmit = () => {
     if (newFileName.trim()) {
@@ -149,7 +140,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     if (result.success) {
       setNewFolderName('');
       setIsCreatingFolder(false);
-      await loadFiles(currentFolder);
+      // 현재 폴더 새로고침
+      const entries = await window.electron.readDirectory(currentFolder);
+      setFiles(entries);
+      // 폴더 내용 캐시 초기화
+      setFolderContents(new Map());
     } else {
       alert('폴더 생성 실패: ' + result.error);
     }
@@ -175,6 +170,53 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       case 'created-asc':
         return '생성일 (오래된 순)';
     }
+  };
+
+  const renderFileTree = (entries: FileEntry[], depth: number = 0): React.ReactNode => {
+    return sortFiles(entries).map((entry) => (
+      <div key={entry.path}>
+        <button
+          onClick={() => {
+            if (entry.type === 'directory') {
+              toggleFolder(entry.path);
+            } else {
+              onSelectFile(entry.path);
+            }
+          }}
+          className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
+            currentFile === entry.path
+              ? 'bg-blue-100 text-blue-700'
+              : 'hover:bg-gray-100 text-gray-700'
+          }`}
+          style={{ paddingLeft: `${8 + depth * 16}px` }}
+        >
+          {entry.type === 'directory' && (
+            <svg
+              className={`w-3 h-3 transition-transform ${
+                expandedFolders.has(entry.path) ? 'rotate-90' : ''
+              }`}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+          {entry.type === 'file' && <span className="w-3" />}
+          <span className="flex-1 truncate">{entry.name}</span>
+        </button>
+        {entry.type === 'directory' &&
+         expandedFolders.has(entry.path) &&
+         folderContents.has(entry.path) && (
+          <div>
+            {renderFileTree(folderContents.get(entry.path)!, depth + 1)}
+          </div>
+        )}
+      </div>
+    ));
   };
 
   if (!isOpen) return null;
@@ -321,27 +363,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </div>
         ) : (
           <div className="space-y-1">
-            {sortFiles(files).map((entry) => (
-              <div key={entry.path}>
-                <button
-                  onClick={() => {
-                    if (entry.type === 'directory') {
-                      toggleFolder(entry.path);
-                    } else {
-                      onSelectFile(entry.path);
-                    }
-                  }}
-                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
-                    currentFile === entry.path
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  <span className="text-base">{getFileIcon(entry)}</span>
-                  <span className="flex-1 truncate">{entry.name}</span>
-                </button>
-              </div>
-            ))}
+            {renderFileTree(files)}
           </div>
         )}
       </div>
