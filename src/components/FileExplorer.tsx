@@ -384,18 +384,27 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, entry: FileEntry) => {
+    console.log('[DragStart]', entry.name, entry.type);
     setDraggedItem(entry);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', entry.path);
   };
 
   const handleDragOver = (e: React.DragEvent, entry: FileEntry) => {
-    // Only allow drop on directories
-    if (entry.type !== 'directory') return;
-
     e.preventDefault();
-    e.stopPropagation(); // Prevent bubbling to root drop zone
     e.dataTransfer.dropEffect = 'move';
+
+    // If it's a file (not a directory), treat as root drop zone
+    if (entry.type !== 'directory') {
+      console.log('[DragOver] File (treat as root):', entry.name);
+      e.stopPropagation(); // Don't let it bubble further
+      setDropTarget('root');
+      return;
+    }
+
+    // It's a directory - allow drop on it
+    console.log('[DragOver] Folder:', entry.name);
+    e.stopPropagation(); // Prevent bubbling to root drop zone
 
     // If we're hovering over a different folder than before, clear the old timer
     if (dropTarget !== entry.path) {
@@ -417,19 +426,27 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
+  const handleDragLeave = (_e: React.DragEvent, entry: FileEntry) => {
+    console.log('[DragLeave]', entry.name, entry.type);
+    // Don't preventDefault or stopPropagation - let it bubble to root
 
-    // Clear the timer when leaving
-    if (dragOverTimer) {
-      clearTimeout(dragOverTimer);
-      setDragOverTimer(null);
-    }
+    // Don't clear the timer here - child elements can trigger dragLeave
+    // Timer will be cleared when moving to another folder or when drag ends
 
-    setDropTarget(null);
+    // Don't clear dropTarget here - let dragOver events handle it
+    // This allows smooth transition from folder to root area
   };
 
   const handleDrop = async (e: React.DragEvent, targetEntry: FileEntry) => {
+    console.log('[Drop] On:', targetEntry.name, targetEntry.type, 'dropTarget:', dropTarget);
+
+    // If dropping on a file and dropTarget is 'root', let it bubble to root
+    if (targetEntry.type !== 'directory' && dropTarget === 'root') {
+      console.log('[Drop] File drop with root target - letting bubble to root');
+      // Don't preventDefault or stopPropagation - let it bubble
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation(); // Prevent bubbling to root drop zone
 
@@ -441,27 +458,27 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     setDropTarget(null);
 
-    if (!draggedItem || !window.electron || !currentFolder) return;
-
-    // Can't drop on files, only on directories
-    if (targetEntry.type !== 'directory') return;
-
-    // Can't drop on itself
-    if (draggedItem.path === targetEntry.path) return;
-
-    // Can't drop parent folder into its child
-    if (targetEntry.path.startsWith(draggedItem.path + '/')) {
-      alert('하위 폴더로 이동할 수 없습니다.');
-      setDraggedItem(null);
+    if (!draggedItem || !window.electron || !currentFolder) {
+      console.log('[Drop] Aborted: missing draggedItem or electron');
       return;
     }
 
-    // Show confirmation dialog
-    const targetFolderName = targetEntry.name;
-    const itemName = draggedItem.name;
-    const itemType = draggedItem.type === 'directory' ? '폴더' : '파일';
+    // Can't drop on files, only on directories
+    if (targetEntry.type !== 'directory') {
+      console.log('[Drop] Aborted: target is not a directory');
+      return;
+    }
 
-    if (!confirm(`"${itemName}" ${itemType}를 "${targetFolderName}" 폴더로 이동하시겠습니까?`)) {
+    // Can't drop on itself
+    if (draggedItem.path === targetEntry.path) {
+      console.log('[Drop] Aborted: dropping on itself');
+      return;
+    }
+
+    // Can't drop parent folder into its child
+    if (targetEntry.path.startsWith(draggedItem.path + '/')) {
+      console.log('[Drop] Aborted: parent to child move');
+      alert('하위 폴더로 이동할 수 없습니다.');
       setDraggedItem(null);
       return;
     }
@@ -470,18 +487,21 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     const fileName = draggedItem.name;
     const newPath = `${targetEntry.path}/${fileName}`;
 
+    console.log('[Drop] Moving:', draggedItem.name, '->', newPath);
     const result = await window.electron.renameFile(draggedItem.path, newPath);
+    console.log('[Drop] Result:', result);
     if (result.success) {
       // Refresh current folder
       const entries = await window.electron.readDirectory(currentFolder);
       setFiles(entries);
-      setFolderContents(new Map());
 
-      // If the target folder is expanded, refresh it too
-      if (expandedFolders.has(targetEntry.path)) {
-        const targetEntries = await window.electron.readDirectory(targetEntry.path);
-        setFolderContents(prev => new Map(prev).set(targetEntry.path, targetEntries));
+      // Reload all expanded folders to keep them open
+      const newFolderContents = new Map<string, FileEntry[]>();
+      for (const folderPath of expandedFolders) {
+        const folderEntries = await window.electron.readDirectory(folderPath);
+        newFolderContents.set(folderPath, folderEntries);
       }
+      setFolderContents(newFolderContents);
     } else {
       alert('이동 실패: ' + result.error);
     }
@@ -490,6 +510,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   };
 
   const handleDropToRoot = async (e: React.DragEvent) => {
+    console.log('[DropToRoot] dropTarget:', dropTarget);
     e.preventDefault();
 
     // Clear the timer when dropping
@@ -500,21 +521,15 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     setDropTarget(null);
 
-    if (!draggedItem || !window.electron || !currentFolder) return;
+    if (!draggedItem || !window.electron || !currentFolder) {
+      console.log('[DropToRoot] Aborted: missing draggedItem or electron');
+      return;
+    }
 
     // Can't drop if already in root
     const draggedItemParent = draggedItem.path.substring(0, draggedItem.path.lastIndexOf('/'));
     if (draggedItemParent === currentFolder) {
-      setDraggedItem(null);
-      return;
-    }
-
-    // Show confirmation dialog
-    const itemName = draggedItem.name;
-    const itemType = draggedItem.type === 'directory' ? '폴더' : '파일';
-    const rootFolderName = currentFolder.split('/').pop() || '루트';
-
-    if (!confirm(`"${itemName}" ${itemType}를 "${rootFolderName}" 폴더로 이동하시겠습니까?`)) {
+      console.log('[DropToRoot] Aborted: already in root');
       setDraggedItem(null);
       return;
     }
@@ -523,12 +538,21 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     const fileName = draggedItem.name;
     const newPath = `${currentFolder}/${fileName}`;
 
+    console.log('[DropToRoot] Moving:', draggedItem.name, '->', newPath);
     const result = await window.electron.renameFile(draggedItem.path, newPath);
+    console.log('[DropToRoot] Result:', result);
     if (result.success) {
       // Refresh current folder
       const entries = await window.electron.readDirectory(currentFolder);
       setFiles(entries);
-      setFolderContents(new Map());
+
+      // Reload all expanded folders to keep them open
+      const newFolderContents = new Map<string, FileEntry[]>();
+      for (const folderPath of expandedFolders) {
+        const folderEntries = await window.electron.readDirectory(folderPath);
+        newFolderContents.set(folderPath, folderEntries);
+      }
+      setFolderContents(newFolderContents);
     } else {
       alert('이동 실패: ' + result.error);
     }
@@ -537,6 +561,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   };
 
   const handleDragEnd = () => {
+    console.log('[DragEnd]');
     // Clear the timer when drag ends
     if (dragOverTimer) {
       clearTimeout(dragOverTimer);
@@ -562,6 +587,36 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       case 'created-asc':
         return '생성일 (오래된 순)';
     }
+  };
+
+  const getDropTargetName = (): string | null => {
+    if (!dropTarget) return null;
+
+    if (dropTarget === 'root') {
+      return currentFolder?.split('/').pop() || '루트';
+    }
+
+    // Find the folder in files or folderContents
+    const findFolder = (entries: FileEntry[]): string | null => {
+      for (const entry of entries) {
+        if (entry.path === dropTarget && entry.type === 'directory') {
+          return entry.name;
+        }
+      }
+      return null;
+    };
+
+    // Search in root files
+    let folderName = findFolder(files);
+    if (folderName) return folderName;
+
+    // Search in expanded folders
+    for (const [, entries] of folderContents) {
+      folderName = findFolder(entries);
+      if (folderName) return folderName;
+    }
+
+    return null;
   };
 
   const renderFileTree = (entries: FileEntry[], depth: number = 0): React.ReactNode => {
@@ -594,7 +649,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
             draggable
             onDragStart={(e) => handleDragStart(e, entry)}
             onDragOver={(e) => handleDragOver(e, entry)}
-            onDragLeave={handleDragLeave}
+            onDragLeave={(e) => handleDragLeave(e, entry)}
             onDrop={(e) => handleDrop(e, entry)}
             onDragEnd={handleDragEnd}
             onClick={() => {
@@ -792,8 +847,22 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           <div
             className="space-y-1 min-h-[200px]"
             onDragOver={(e) => {
+              console.log('[RootDragOver]');
               e.preventDefault();
               e.dataTransfer.dropEffect = 'move';
+              setDropTarget('root');
+            }}
+            onDragLeave={(e) => {
+              console.log('[RootDragLeave]');
+              e.preventDefault();
+              // Only clear if we're leaving the root area completely
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX;
+              const y = e.clientY;
+              if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+                console.log('[RootDragLeave] Actually leaving, clearing dropTarget');
+                setDropTarget(null);
+              }
             }}
             onDrop={handleDropToRoot}
           >
@@ -859,6 +928,22 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
             </svg>
             삭제
           </button>
+        </div>
+      )}
+
+      {/* Drag and Drop Info Overlay */}
+      {draggedItem && dropTarget && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-80 text-white px-6 py-4 rounded-lg shadow-2xl z-[300] pointer-events-none">
+          <div className="flex items-center gap-3">
+            <div className="text-lg font-medium">{draggedItem.name}</div>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+            <div className="text-lg font-medium">{getDropTargetName()}</div>
+          </div>
+          <div className="text-sm text-gray-300 mt-1 text-center">
+            {draggedItem.type === 'directory' ? '폴더' : '파일'}를 이동합니다
+          </div>
         </div>
       )}
     </div>
