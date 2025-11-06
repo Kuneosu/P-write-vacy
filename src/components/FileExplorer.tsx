@@ -394,6 +394,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     if (entry.type !== 'directory') return;
 
     e.preventDefault();
+    e.stopPropagation(); // Prevent bubbling to root drop zone
     e.dataTransfer.dropEffect = 'move';
 
     // If we're hovering over a different folder than before, clear the old timer
@@ -430,6 +431,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   const handleDrop = async (e: React.DragEvent, targetEntry: FileEntry) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent bubbling to root drop zone
 
     // Clear the timer when dropping
     if (dragOverTimer) {
@@ -454,6 +456,16 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       return;
     }
 
+    // Show confirmation dialog
+    const targetFolderName = targetEntry.name;
+    const itemName = draggedItem.name;
+    const itemType = draggedItem.type === 'directory' ? '폴더' : '파일';
+
+    if (!confirm(`"${itemName}" ${itemType}를 "${targetFolderName}" 폴더로 이동하시겠습니까?`)) {
+      setDraggedItem(null);
+      return;
+    }
+
     // Move the file/folder
     const fileName = draggedItem.name;
     const newPath = `${targetEntry.path}/${fileName}`;
@@ -470,6 +482,53 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         const targetEntries = await window.electron.readDirectory(targetEntry.path);
         setFolderContents(prev => new Map(prev).set(targetEntry.path, targetEntries));
       }
+    } else {
+      alert('이동 실패: ' + result.error);
+    }
+
+    setDraggedItem(null);
+  };
+
+  const handleDropToRoot = async (e: React.DragEvent) => {
+    e.preventDefault();
+
+    // Clear the timer when dropping
+    if (dragOverTimer) {
+      clearTimeout(dragOverTimer);
+      setDragOverTimer(null);
+    }
+
+    setDropTarget(null);
+
+    if (!draggedItem || !window.electron || !currentFolder) return;
+
+    // Can't drop if already in root
+    const draggedItemParent = draggedItem.path.substring(0, draggedItem.path.lastIndexOf('/'));
+    if (draggedItemParent === currentFolder) {
+      setDraggedItem(null);
+      return;
+    }
+
+    // Show confirmation dialog
+    const itemName = draggedItem.name;
+    const itemType = draggedItem.type === 'directory' ? '폴더' : '파일';
+    const rootFolderName = currentFolder.split('/').pop() || '루트';
+
+    if (!confirm(`"${itemName}" ${itemType}를 "${rootFolderName}" 폴더로 이동하시겠습니까?`)) {
+      setDraggedItem(null);
+      return;
+    }
+
+    // Move to root
+    const fileName = draggedItem.name;
+    const newPath = `${currentFolder}/${fileName}`;
+
+    const result = await window.electron.renameFile(draggedItem.path, newPath);
+    if (result.success) {
+      // Refresh current folder
+      const entries = await window.electron.readDirectory(currentFolder);
+      setFiles(entries);
+      setFolderContents(new Map());
     } else {
       alert('이동 실패: ' + result.error);
     }
@@ -730,7 +789,14 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
             폴더를 선택하세요
           </div>
         ) : (
-          <div className="space-y-1">
+          <div
+            className="space-y-1 min-h-[200px]"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+            }}
+            onDrop={handleDropToRoot}
+          >
             {renderFileTree(files)}
           </div>
         )}
