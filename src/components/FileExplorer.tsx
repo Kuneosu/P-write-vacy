@@ -38,6 +38,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   // Clipboard state for copy/paste
   const [clipboard, setClipboard] = useState<FileEntry | null>(null);
 
+  // Drag and drop state
+  const [draggedItem, setDraggedItem] = useState<FileEntry | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [dragOverTimer, setDragOverTimer] = useState<number | null>(null);
+
   useEffect(() => {
     if (currentFolder && window.electron) {
       loadFiles(currentFolder);
@@ -160,6 +165,15 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, currentFile, files, folderContents, clipboard, isRenaming]);
+
+  // Cleanup drag over timer on unmount
+  useEffect(() => {
+    return () => {
+      if (dragOverTimer) {
+        clearTimeout(dragOverTimer);
+      }
+    };
+  }, [dragOverTimer]);
 
   const loadFiles = async (folderPath: string) => {
     if (!window.electron) return;
@@ -368,6 +382,112 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setContextMenu(null);
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, entry: FileEntry) => {
+    setDraggedItem(entry);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', entry.path);
+  };
+
+  const handleDragOver = (e: React.DragEvent, entry: FileEntry) => {
+    // Only allow drop on directories
+    if (entry.type !== 'directory') return;
+
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+
+    // If we're hovering over a different folder than before, clear the old timer
+    if (dropTarget !== entry.path) {
+      if (dragOverTimer) {
+        clearTimeout(dragOverTimer);
+      }
+
+      setDropTarget(entry.path);
+
+      // Set a timer to auto-expand the folder after 500ms
+      // Only if the folder is not already expanded
+      if (!expandedFolders.has(entry.path)) {
+        const timer = setTimeout(() => {
+          toggleFolder(entry.path);
+          setDragOverTimer(null);
+        }, 500);
+        setDragOverTimer(timer);
+      }
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+
+    // Clear the timer when leaving
+    if (dragOverTimer) {
+      clearTimeout(dragOverTimer);
+      setDragOverTimer(null);
+    }
+
+    setDropTarget(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetEntry: FileEntry) => {
+    e.preventDefault();
+
+    // Clear the timer when dropping
+    if (dragOverTimer) {
+      clearTimeout(dragOverTimer);
+      setDragOverTimer(null);
+    }
+
+    setDropTarget(null);
+
+    if (!draggedItem || !window.electron || !currentFolder) return;
+
+    // Can't drop on files, only on directories
+    if (targetEntry.type !== 'directory') return;
+
+    // Can't drop on itself
+    if (draggedItem.path === targetEntry.path) return;
+
+    // Can't drop parent folder into its child
+    if (targetEntry.path.startsWith(draggedItem.path + '/')) {
+      alert('하위 폴더로 이동할 수 없습니다.');
+      setDraggedItem(null);
+      return;
+    }
+
+    // Move the file/folder
+    const fileName = draggedItem.name;
+    const newPath = `${targetEntry.path}/${fileName}`;
+
+    const result = await window.electron.renameFile(draggedItem.path, newPath);
+    if (result.success) {
+      // Refresh current folder
+      const entries = await window.electron.readDirectory(currentFolder);
+      setFiles(entries);
+      setFolderContents(new Map());
+
+      // If the target folder is expanded, refresh it too
+      if (expandedFolders.has(targetEntry.path)) {
+        const targetEntries = await window.electron.readDirectory(targetEntry.path);
+        setFolderContents(prev => new Map(prev).set(targetEntry.path, targetEntries));
+      }
+    } else {
+      alert('이동 실패: ' + result.error);
+    }
+
+    setDraggedItem(null);
+  };
+
+  const handleDragEnd = () => {
+    // Clear the timer when drag ends
+    if (dragOverTimer) {
+      clearTimeout(dragOverTimer);
+      setDragOverTimer(null);
+    }
+
+    setDraggedItem(null);
+    setDropTarget(null);
+  };
+
   const getSortOrderLabel = (order: SortOrder): string => {
     switch (order) {
       case 'name-asc':
@@ -412,6 +532,12 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         ) : (
           // Normal mode
           <button
+            draggable
+            onDragStart={(e) => handleDragStart(e, entry)}
+            onDragOver={(e) => handleDragOver(e, entry)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, entry)}
+            onDragEnd={handleDragEnd}
             onClick={() => {
               if (entry.type === 'directory') {
                 toggleFolder(entry.path);
@@ -423,6 +549,10 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
             className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
               currentFile === entry.path
                 ? 'bg-blue-100 text-blue-700'
+                : draggedItem?.path === entry.path
+                ? 'opacity-50'
+                : dropTarget === entry.path && entry.type === 'directory'
+                ? 'bg-green-100 border-2 border-green-400'
                 : 'hover:bg-gray-100 text-gray-700'
             }`}
             style={{ paddingLeft: `${8 + depth * 16}px` }}
