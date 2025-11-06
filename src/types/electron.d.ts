@@ -7,6 +7,7 @@ export interface ElectronAPI {
   deleteFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
   renameFile: (oldPath: string, newPath: string) => Promise<{ success: boolean; error?: string }>;
   createFolder: (parentPath: string, folderName: string) => Promise<{ success: boolean; path?: string; error?: string }>;
+  deleteFolder: (folderPath: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface FileEntry {

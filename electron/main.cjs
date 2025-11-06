@@ -163,3 +163,13 @@ ipcMain.handle('create-folder', async (event, parentPath, folderName) => {
     return { success: false, error: error.message };
   }
 });
+
+// 폴더 삭제
+ipcMain.handle('delete-folder', async (event, folderPath) => {
+  try {
+    await fs.rm(folderPath, { recursive: true, force: true });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});

@@ -30,6 +30,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const [sortOrder, setSortOrder] = useState<SortOrder>('name-asc');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; entry: FileEntry } | null>(null);
+  const [isRenaming, setIsRenaming] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+
   useEffect(() => {
     if (currentFolder && window.electron) {
       loadFiles(currentFolder);
@@ -66,6 +71,15 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, [showSortMenu]);
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null);
+    if (contextMenu) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [contextMenu]);
 
   const loadFiles = async (folderPath: string) => {
     if (!window.electron) return;
@@ -155,6 +169,73 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setIsCreatingFolder(false);
   };
 
+  const handleContextMenu = (e: React.MouseEvent, entry: FileEntry) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, entry });
+  };
+
+  const handleDelete = async (entry: FileEntry) => {
+    if (!window.electron || !currentFolder) return;
+
+    const confirmMessage = entry.type === 'directory'
+      ? `"${entry.name}" 폴더와 내부의 모든 파일을 삭제하시겠습니까?`
+      : `"${entry.name}" 파일을 삭제하시겠습니까?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    const result = entry.type === 'directory'
+      ? await window.electron.deleteFolder(entry.path)
+      : await window.electron.deleteFile(entry.path);
+
+    if (result.success) {
+      // 현재 폴더 새로고침
+      const entries = await window.electron.readDirectory(currentFolder);
+      setFiles(entries);
+      setFolderContents(new Map());
+    } else {
+      alert('삭제 실패: ' + result.error);
+    }
+
+    setContextMenu(null);
+  };
+
+  const handleRename = (entry: FileEntry) => {
+    setIsRenaming(entry.path);
+    setRenameValue(entry.name);
+    setContextMenu(null);
+  };
+
+  const handleRenameSubmit = async (entry: FileEntry) => {
+    if (!window.electron || !renameValue.trim() || renameValue === entry.name) {
+      setIsRenaming(null);
+      return;
+    }
+
+    const parentPath = entry.path.substring(0, entry.path.lastIndexOf('/'));
+    const newPath = `${parentPath}/${renameValue}`;
+
+    const result = await window.electron.renameFile(entry.path, newPath);
+    if (result.success) {
+      // 현재 폴더 새로고침
+      if (currentFolder) {
+        const entries = await window.electron.readDirectory(currentFolder);
+        setFiles(entries);
+        setFolderContents(new Map());
+      }
+    } else {
+      alert('이름 변경 실패: ' + result.error);
+    }
+
+    setIsRenaming(null);
+    setRenameValue('');
+  };
+
+  const handleRenameCancel = () => {
+    setIsRenaming(null);
+    setRenameValue('');
+  };
+
   const getSortOrderLabel = (order: SortOrder): string => {
     switch (order) {
       case 'name-asc':
@@ -175,39 +256,64 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const renderFileTree = (entries: FileEntry[], depth: number = 0): React.ReactNode => {
     return sortFiles(entries).map((entry) => (
       <div key={entry.path}>
-        <button
-          onClick={() => {
-            if (entry.type === 'directory') {
-              toggleFolder(entry.path);
-            } else {
-              onSelectFile(entry.path);
-            }
-          }}
-          className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
-            currentFile === entry.path
-              ? 'bg-blue-100 text-blue-700'
-              : 'hover:bg-gray-100 text-gray-700'
-          }`}
-          style={{ paddingLeft: `${8 + depth * 16}px` }}
-        >
-          {entry.type === 'directory' && (
-            <svg
-              className={`w-3 h-3 transition-transform ${
-                expandedFolders.has(entry.path) ? 'rotate-90' : ''
-              }`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          )}
-          {entry.type === 'file' && <span className="w-3" />}
-          <span className="flex-1 truncate">{entry.name}</span>
-        </button>
+        {isRenaming === entry.path ? (
+          // Rename mode
+          <div
+            className="w-full flex items-center gap-2 px-2 py-1.5"
+            style={{ paddingLeft: `${8 + depth * 16}px` }}
+          >
+            {entry.type === 'directory' && <span className="w-3" />}
+            {entry.type === 'file' && <span className="w-3" />}
+            <input
+              type="text"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRenameSubmit(entry);
+                if (e.key === 'Escape') handleRenameCancel();
+              }}
+              onBlur={() => handleRenameSubmit(entry)}
+              className="flex-1 px-1 py-0.5 text-sm border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              autoFocus
+            />
+          </div>
+        ) : (
+          // Normal mode
+          <button
+            onClick={() => {
+              if (entry.type === 'directory') {
+                toggleFolder(entry.path);
+              } else {
+                onSelectFile(entry.path);
+              }
+            }}
+            onContextMenu={(e) => handleContextMenu(e, entry)}
+            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
+              currentFile === entry.path
+                ? 'bg-blue-100 text-blue-700'
+                : 'hover:bg-gray-100 text-gray-700'
+            }`}
+            style={{ paddingLeft: `${8 + depth * 16}px` }}
+          >
+            {entry.type === 'directory' && (
+              <svg
+                className={`w-3 h-3 transition-transform ${
+                  expandedFolders.has(entry.path) ? 'rotate-90' : ''
+                }`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+            {entry.type === 'file' && <span className="w-3" />}
+            <span className="flex-1 truncate">{entry.name}</span>
+          </button>
+        )}
         {entry.type === 'directory' &&
          expandedFolders.has(entry.path) &&
          folderContents.has(entry.path) && (
@@ -367,6 +473,37 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </div>
         )}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white rounded-md shadow-lg border border-gray-200 py-1 z-[200]"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => handleRename(contextMenu.entry)}
+            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            이름 변경
+          </button>
+          <button
+            onClick={() => handleDelete(contextMenu.entry)}
+            className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            삭제
+          </button>
+        </div>
+      )}
     </div>
   );
 };

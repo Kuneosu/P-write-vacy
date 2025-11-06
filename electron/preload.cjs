@@ -24,4 +24,7 @@ contextBridge.exposeInMainWorld('electron', {
 
   // 폴더 생성
   createFolder: (parentPath, folderName) => ipcRenderer.invoke('create-folder', parentPath, folderName),
+
+  // 폴더 삭제
+  deleteFolder: (folderPath) => ipcRenderer.invoke('delete-folder', folderPath),
 });
