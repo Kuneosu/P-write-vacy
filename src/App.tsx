@@ -5,12 +5,13 @@ import { SettingsButton } from "./components/SettingsButton";
 import { FileExplorer } from "./components/FileExplorer";
 import { MarkdownViewer } from "./components/MarkdownViewer";
 import { Tooltip } from "./components/Tooltip";
-import type { FocusSettings } from "./types";
+import type { FocusSettings, Preset } from "./types";
 
 const STORAGE_KEYS = {
   CONTENT: "p-write-vacy-content",
   PRIVACY_ACTIVE: "p-write-vacy-privacy",
   FOCUS_SETTINGS: "p-write-vacy-focus-settings",
+  PRESETS: "p-write-vacy-presets",
 };
 
 const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
@@ -33,6 +34,7 @@ function App() {
     DEFAULT_FOCUS_SETTINGS
   );
   const [isHovered, setIsHovered] = useState(false);
+  const [presets, setPresets] = useState<Preset[]>([]);
 
   // File Explorer state
   const [fileExplorerOpen, setFileExplorerOpen] = useState(false);
@@ -63,6 +65,7 @@ function App() {
   useEffect(() => {
     const savedPrivacy = localStorage.getItem(STORAGE_KEYS.PRIVACY_ACTIVE);
     const savedSettings = localStorage.getItem(STORAGE_KEYS.FOCUS_SETTINGS);
+    const savedPresets = localStorage.getItem(STORAGE_KEYS.PRESETS);
 
     if (savedPrivacy !== null) {
       setPrivacyActive(savedPrivacy === "true");
@@ -74,6 +77,15 @@ function App() {
         setFocusSettings({ ...DEFAULT_FOCUS_SETTINGS, ...parsedSettings });
       } catch (e) {
         console.error("Failed to parse focus settings:", e);
+      }
+    }
+
+    if (savedPresets) {
+      try {
+        const parsedPresets = JSON.parse(savedPresets);
+        setPresets(parsedPresets);
+      } catch (e) {
+        console.error("Failed to parse presets:", e);
       }
     }
   }, []);
@@ -101,6 +113,11 @@ function App() {
       JSON.stringify(focusSettings)
     );
   }, [focusSettings]);
+
+  // Save presets to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PRESETS, JSON.stringify(presets));
+  }, [presets]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -190,6 +207,38 @@ function App() {
 
   const handleSettingsChange = (newSettings: FocusSettings) => {
     setFocusSettings(newSettings);
+  };
+
+  // Preset handlers
+  const handleSavePreset = (name: string) => {
+    if (presets.length >= 3) {
+      alert("최대 3개의 프리셋만 저장할 수 있습니다.");
+      return;
+    }
+
+    const newPreset: Preset = {
+      id: Date.now().toString(),
+      name,
+      settings: { ...focusSettings },
+    };
+
+    setPresets([...presets, newPreset]);
+  };
+
+  const handleLoadPreset = (preset: Preset) => {
+    setFocusSettings(preset.settings);
+  };
+
+  const handleUpdatePreset = (id: string, name: string) => {
+    setPresets(
+      presets.map((p) =>
+        p.id === id ? { ...p, name, settings: { ...focusSettings } } : p
+      )
+    );
+  };
+
+  const handleDeletePreset = (id: string) => {
+    setPresets(presets.filter((p) => p.id !== id));
   };
 
   // File Explorer handlers
@@ -533,6 +582,11 @@ function App() {
         onPrivacyToggle={() => setPrivacyActive((prev) => !prev)}
         focusSettings={focusSettings}
         onSettingsChange={handleSettingsChange}
+        presets={presets}
+        onSavePreset={handleSavePreset}
+        onLoadPreset={handleLoadPreset}
+        onUpdatePreset={handleUpdatePreset}
+        onDeletePreset={handleDeletePreset}
       />
     </div>
   );

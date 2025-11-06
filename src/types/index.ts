@@ -15,6 +15,12 @@ export interface FocusSettings {
   textColor: string; // 텍스트 색상
 }
 
+export interface Preset {
+  id: string;
+  name: string;
+  settings: FocusSettings;
+}
+
 export interface AppState {
   privacyActive: boolean;
   focusSettings: FocusSettings;

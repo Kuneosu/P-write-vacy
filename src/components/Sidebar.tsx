@@ -1,5 +1,6 @@
-import React from 'react';
-import type { FocusSettings } from '../types';
+import React, { useState } from 'react';
+import type { FocusSettings, Preset } from '../types';
+import { ContextMenu } from './ContextMenu';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,6 +9,11 @@ interface SidebarProps {
   onPrivacyToggle: () => void;
   focusSettings: FocusSettings;
   onSettingsChange: (settings: FocusSettings) => void;
+  presets: Preset[];
+  onSavePreset: (name: string) => void;
+  onLoadPreset: (preset: Preset) => void;
+  onUpdatePreset: (id: string, name: string) => void;
+  onDeletePreset: (id: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -16,8 +22,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   privacyActive,
   onPrivacyToggle,
   focusSettings,
-  onSettingsChange
+  onSettingsChange,
+  presets,
+  onSavePreset,
+  onLoadPreset,
+  onUpdatePreset,
+  onDeletePreset
 }) => {
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    presetId: string;
+  } | null>(null);
+  const [hoveredPreset, setHoveredPreset] = useState<Preset | null>(null);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+  const [isCreatingPreset, setIsCreatingPreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState('');
+
   const handleRadiusXChange = (value: number) => {
     if (focusSettings.focusShape === 'circle') {
       // 원형일 때는 radiusX와 radiusY를 동시에 변경
@@ -70,6 +92,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onSettingsChange({ ...focusSettings, textColor: color });
   };
 
+  const handleContextMenu = (e: React.MouseEvent, presetId: string) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      presetId,
+    });
+  };
+
+  const handleEditPreset = (preset: Preset) => {
+    setEditingPresetId(preset.id);
+    setEditingName(preset.name);
+  };
+
+  const handleSaveEdit = (id: string) => {
+    if (editingName.trim()) {
+      onUpdatePreset(id, editingName.trim());
+      setEditingPresetId(null);
+    }
+  };
+
+  const handleCreatePreset = () => {
+    if (newPresetName.trim()) {
+      onSavePreset(newPresetName.trim());
+      setNewPresetName('');
+      setIsCreatingPreset(false);
+    }
+  };
+
+  const formatSettings = (settings: FocusSettings): string => {
+    return [
+      `크기: ${settings.radiusX}×${settings.radiusY}px`,
+      `블러: ${settings.blurIntensity}px`,
+      `투명도: ${Math.round(settings.blurOpacity * 100)}%`,
+      `모양: ${settings.focusShape === 'circle' ? '원형' : '타원형'}`
+    ].join(' | ');
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -116,6 +176,136 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Presets Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-700">프리셋</h3>
+                <span className="text-xs text-gray-500">{presets.length}/3</span>
+              </div>
+
+              {/* Preset List */}
+              <div className="space-y-2">
+                {presets.map((preset) => (
+                  <div
+                    key={preset.id}
+                    className="relative"
+                    onMouseEnter={() => setHoveredPreset(preset)}
+                    onMouseLeave={() => setHoveredPreset(null)}
+                  >
+                    {editingPresetId === preset.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveEdit(preset.id);
+                            if (e.key === 'Escape') setEditingPresetId(null);
+                          }}
+                          className="flex-1 px-3 py-2 text-sm border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleSaveEdit(preset.id)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => onLoadPreset(preset)}
+                        onContextMenu={(e) => handleContextMenu(e, preset.id)}
+                        className="w-full px-3 py-2 text-left text-sm bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors relative group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-700 group-hover:text-blue-700">
+                            {preset.name}
+                          </span>
+                          <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                        {hoveredPreset?.id === preset.id && (
+                          <div className="absolute left-0 right-0 -top-20 bg-gray-800 text-white text-xs rounded-lg p-2 z-10 shadow-lg">
+                            <div className="space-y-1">
+                              <div className="font-semibold border-b border-gray-600 pb-1">
+                                {preset.name}
+                              </div>
+                              <div className="text-gray-300">
+                                {formatSettings(preset.settings)}
+                              </div>
+                            </div>
+                            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-800" />
+                          </div>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Create New Preset */}
+              {presets.length < 3 && (
+                <div>
+                  {isCreatingPreset ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newPresetName}
+                        onChange={(e) => setNewPresetName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleCreatePreset();
+                          if (e.key === 'Escape') {
+                            setIsCreatingPreset(false);
+                            setNewPresetName('');
+                          }
+                        }}
+                        placeholder="프리셋 이름"
+                        className="flex-1 px-3 py-2 text-sm border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleCreatePreset}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsCreatingPreset(false);
+                          setNewPresetName('');
+                        }}
+                        className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setIsCreatingPreset(true)}
+                      className="w-full px-3 py-2 text-sm text-blue-600 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      현재 설정 저장
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <p className="text-xs text-gray-500">
+                프리셋을 클릭하면 설정이 적용됩니다. 우클릭으로 수정하거나 삭제할 수 있습니다.
+              </p>
+            </div>
+
             {/* Privacy Toggle */}
             <div className="space-y-3">
               <label className="flex items-center justify-between">
@@ -382,6 +572,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          onEdit={() => {
+            const preset = presets.find((p) => p.id === contextMenu.presetId);
+            if (preset) handleEditPreset(preset);
+          }}
+          onDelete={() => {
+            if (confirm('이 프리셋을 삭제하시겠습니까?')) {
+              onDeletePreset(contextMenu.presetId);
+            }
+          }}
+        />
+      )}
     </>
   );
 };
