@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 
 let mainWindow;
 
@@ -168,6 +169,84 @@ ipcMain.handle('create-folder', async (event, parentPath, folderName) => {
 ipcMain.handle('delete-folder', async (event, folderPath) => {
   try {
     await fs.rm(folderPath, { recursive: true, force: true });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// 파일/폴더 복제
+ipcMain.handle('duplicate-item', async (event, itemPath) => {
+  try {
+    const parsedPath = path.parse(itemPath);
+    const stats = await fs.stat(itemPath);
+
+    if (stats.isDirectory()) {
+      // 폴더 복제
+      let newPath = itemPath + ' copy';
+      let counter = 1;
+      while (fsSync.existsSync(newPath)) {
+        newPath = `${itemPath} copy ${counter}`;
+        counter++;
+      }
+
+      // 재귀적으로 폴더 복사
+      await copyDir(itemPath, newPath);
+      return { success: true, path: newPath };
+    } else {
+      // 파일 복제
+      const ext = parsedPath.ext;
+      const nameWithoutExt = parsedPath.name;
+      let newPath = path.join(parsedPath.dir, `${nameWithoutExt} copy${ext}`);
+      let counter = 1;
+
+      while (fsSync.existsSync(newPath)) {
+        newPath = path.join(parsedPath.dir, `${nameWithoutExt} copy ${counter}${ext}`);
+        counter++;
+      }
+
+      await fs.copyFile(itemPath, newPath);
+      return { success: true, path: newPath };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// 폴더 재귀 복사 헬퍼 함수
+async function copyDir(src, dest) {
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (entry.isDirectory()) {
+      await copyDir(srcPath, destPath);
+    } else {
+      await fs.copyFile(srcPath, destPath);
+    }
+  }
+}
+
+// 기본 앱에서 열기
+ipcMain.handle('open-with-default', async (event, itemPath) => {
+  try {
+    const result = await shell.openPath(itemPath);
+    if (result) {
+      return { success: false, error: result };
+    }
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Finder에서 보기
+ipcMain.handle('reveal-in-finder', async (event, itemPath) => {
+  try {
+    shell.showItemInFolder(itemPath);
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };

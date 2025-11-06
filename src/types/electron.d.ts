@@ -8,6 +8,9 @@ export interface ElectronAPI {
   renameFile: (oldPath: string, newPath: string) => Promise<{ success: boolean; error?: string }>;
   createFolder: (parentPath: string, folderName: string) => Promise<{ success: boolean; path?: string; error?: string }>;
   deleteFolder: (folderPath: string) => Promise<{ success: boolean; error?: string }>;
+  duplicateItem: (itemPath: string) => Promise<{ success: boolean; path?: string; error?: string }>;
+  openWithDefault: (itemPath: string) => Promise<{ success: boolean; error?: string }>;
+  revealInFinder: (itemPath: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface FileEntry {

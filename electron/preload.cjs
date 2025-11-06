@@ -27,4 +27,13 @@ contextBridge.exposeInMainWorld('electron', {
 
   // 폴더 삭제
   deleteFolder: (folderPath) => ipcRenderer.invoke('delete-folder', folderPath),
+
+  // 파일/폴더 복제
+  duplicateItem: (itemPath) => ipcRenderer.invoke('duplicate-item', itemPath),
+
+  // 기본 앱에서 열기
+  openWithDefault: (itemPath) => ipcRenderer.invoke('open-with-default', itemPath),
+
+  // Finder에서 보기
+  revealInFinder: (itemPath) => ipcRenderer.invoke('reveal-in-finder', itemPath),
 });
