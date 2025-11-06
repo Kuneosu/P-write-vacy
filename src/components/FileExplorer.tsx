@@ -35,6 +35,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
+  // Clipboard state for copy/paste
+  const [clipboard, setClipboard] = useState<FileEntry | null>(null);
+
   useEffect(() => {
     if (currentFolder && window.electron) {
       loadFiles(currentFolder);
@@ -80,6 +83,83 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       return () => document.removeEventListener('click', handleClick);
     }
   }, [contextMenu]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle shortcuts when file explorer is open and a file is selected
+      if (!isOpen || !currentFile) return;
+
+      // Don't interfere with input fields
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+
+      // Find the currently selected file entry
+      const findEntry = (path: string): FileEntry | null => {
+        // Search in root files
+        const rootEntry = files.find(f => f.path === path);
+        if (rootEntry) return rootEntry;
+
+        // Search in expanded folders
+        for (const [, entries] of folderContents) {
+          const entry = entries.find(f => f.path === path);
+          if (entry) return entry;
+        }
+        return null;
+      };
+
+      const currentEntry = findEntry(currentFile);
+      if (!currentEntry) return;
+
+      // Cmd+Backspace: Delete
+      if (cmdKey && e.key === 'Backspace') {
+        e.preventDefault();
+        handleDelete(currentEntry);
+        return;
+      }
+
+      // Cmd+C: Copy
+      if (cmdKey && e.key === 'c') {
+        e.preventDefault();
+        setClipboard(currentEntry);
+        return;
+      }
+
+      // Cmd+V: Paste (duplicate)
+      if (cmdKey && e.key === 'v' && clipboard) {
+        e.preventDefault();
+        handlePaste();
+        return;
+      }
+
+      // Cmd+D: Duplicate
+      if (cmdKey && e.key === 'd') {
+        e.preventDefault();
+        handleDuplicate(currentEntry);
+        return;
+      }
+
+      // Enter: Rename
+      if (e.key === 'Enter' && !isRenaming) {
+        e.preventDefault();
+        handleRename(currentEntry);
+        return;
+      }
+
+      // Delete/Backspace (without Cmd): Delete
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !cmdKey) {
+        e.preventDefault();
+        handleDelete(currentEntry);
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, currentFile, files, folderContents, clipboard, isRenaming]);
 
   const loadFiles = async (folderPath: string) => {
     if (!window.electron) return;
@@ -250,6 +330,20 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     }
 
     setContextMenu(null);
+  };
+
+  const handlePaste = async () => {
+    if (!clipboard || !window.electron || !currentFolder) return;
+
+    const result = await window.electron.duplicateItem(clipboard.path);
+    if (result.success) {
+      // 현재 폴더 새로고침
+      const entries = await window.electron.readDirectory(currentFolder);
+      setFiles(entries);
+      setFolderContents(new Map());
+    } else {
+      alert('붙여넣기 실패: ' + result.error);
+    }
   };
 
   const handleOpenWithDefault = async (entry: FileEntry) => {
