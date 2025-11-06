@@ -52,12 +52,11 @@ function App() {
     setIsMarkdownViewMode(false);
   }, [currentFile]);
 
-  // Clear content when no folder is selected
+  // Clear content and file when folder changes or is deselected
   useEffect(() => {
-    if (!currentFolder) {
-      setContent("");
-      setCurrentFile(null);
-    }
+    setContent("");
+    setCurrentFile(null);
+    setHasUnsavedChanges(false);
   }, [currentFolder]);
 
   // Load from localStorage on mount
@@ -106,6 +105,14 @@ function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC: Deselect current file
+      if (e.key === "Escape" && currentFile) {
+        e.preventDefault();
+        setCurrentFile(null);
+        setContent("");
+        setHasUnsavedChanges(false);
+      }
+
       // Ctrl+S: Toggle file explorer
       if (e.ctrlKey && e.code === "KeyS") {
         e.preventDefault();
@@ -169,7 +176,7 @@ function App() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [currentFile]);
 
   const handleContentChange = (newContent: string) => {
     console.log('Content changed (length:', newContent.length, ')');
@@ -231,6 +238,15 @@ function App() {
       setRefreshTrigger((prev) => prev + 1);
     } else {
       alert("파일 생성 실패: " + result.error);
+    }
+  };
+
+  const handleDeleteFile = (deletedPath: string) => {
+    // If the deleted file is currently open, close it
+    if (currentFile === deletedPath) {
+      setCurrentFile(null);
+      setContent("");
+      setHasUnsavedChanges(false);
     }
   };
 
@@ -318,6 +334,7 @@ function App() {
         onSelectFolder={handleSelectFolder}
         onSelectFile={handleSelectFile}
         onCreateFile={handleCreateFile}
+        onDeleteFile={handleDeleteFile}
         refreshTrigger={refreshTrigger}
       />
 
@@ -348,6 +365,32 @@ function App() {
               <span className="text-gray-700 group-hover:text-gray-900 transition-colors">폴더 선택하기</span>
             </div>
           </button>
+        </div>
+      ) : !currentFile ? (
+        <div
+          className="w-full h-full flex items-center justify-center"
+          style={{
+            backgroundColor: focusSettings.backgroundColor,
+            paddingLeft: fileExplorerOpen ? '256px' : '0'
+          }}
+        >
+          <div className="text-center">
+            <svg
+              className="w-16 h-16 mx-auto mb-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <p className="text-gray-500 text-lg">파일을 선택하세요</p>
+            <p className="text-gray-400 text-sm mt-2">왼쪽 파일 탐색기에서 파일을 선택하거나 새로 만드세요</p>
+          </div>
         </div>
       ) : isMarkdownViewMode ? (
         <MarkdownViewer

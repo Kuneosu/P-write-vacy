@@ -9,6 +9,7 @@ interface FileExplorerProps {
   onSelectFolder: () => void;
   onSelectFile: (filePath: string) => void;
   onCreateFile: (fileName: string) => void;
+  onDeleteFile?: (filePath: string) => void;
   refreshTrigger?: number;
 }
 
@@ -19,6 +20,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   onSelectFolder,
   onSelectFile,
   onCreateFile,
+  onDeleteFile,
   refreshTrigger = 0,
 }) => {
   const [files, setFiles] = useState<FileEntry[]>([]);
@@ -315,6 +317,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       : await window.electron.deleteFile(entry.path);
 
     if (result.success) {
+      // Notify parent component about the deletion
+      if (onDeleteFile) {
+        onDeleteFile(entry.path);
+      }
+
       // 현재 폴더 새로고침
       const entries = await window.electron.readDirectory(currentFolder);
       setFiles(entries);
