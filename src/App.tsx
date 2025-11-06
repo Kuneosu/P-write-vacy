@@ -40,6 +40,7 @@ function App() {
   const [fileExplorerOpen, setFileExplorerOpen] = useState(false);
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -58,6 +59,7 @@ function App() {
   useEffect(() => {
     setContent("");
     setCurrentFile(null);
+    setSelectedFiles([]);
     setHasUnsavedChanges(false);
   }, [currentFolder]);
 
@@ -267,6 +269,34 @@ function App() {
       console.log('File content (length:', result.content.length, ')');
       console.log('Has newlines:', result.content.includes('\n'));
       setCurrentFile(filePath);
+      setSelectedFiles([filePath]);
+      setContent(result.content);
+      setHasUnsavedChanges(false);
+    } else {
+      console.error("Failed to read file:", result.error);
+      alert("파일 읽기 실패: " + result.error);
+    }
+  };
+
+  const handleFileSelection = (selectedPaths: string[]) => {
+    setSelectedFiles(selectedPaths);
+  };
+
+  // Load file without resetting selection (for multi-select mode)
+  const handleLoadFileInMultiSelect = async (filePath: string) => {
+    if (!window.electron) return;
+
+    // Save current file if there are unsaved changes
+    if (currentFile && hasUnsavedChanges) {
+      await window.electron.writeFile(currentFile, content);
+      setHasUnsavedChanges(false);
+    }
+
+    // Load new file without resetting selectedFiles
+    const result = await window.electron.readFile(filePath);
+    if (result.success && result.content !== undefined) {
+      console.log('Loaded file:', filePath);
+      setCurrentFile(filePath);
       setContent(result.content);
       setHasUnsavedChanges(false);
     } else {
@@ -297,6 +327,8 @@ function App() {
       setContent("");
       setHasUnsavedChanges(false);
     }
+    // Remove from selected files
+    setSelectedFiles(prev => prev.filter(path => path !== deletedPath));
   };
 
   // Auto-save current file
@@ -380,8 +412,11 @@ function App() {
         isOpen={fileExplorerOpen}
         currentFolder={currentFolder}
         currentFile={currentFile}
+        selectedFiles={selectedFiles}
         onSelectFolder={handleSelectFolder}
         onSelectFile={handleSelectFile}
+        onLoadFileInMultiSelect={handleLoadFileInMultiSelect}
+        onFileSelection={handleFileSelection}
         onCreateFile={handleCreateFile}
         onDeleteFile={handleDeleteFile}
         refreshTrigger={refreshTrigger}

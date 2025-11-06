@@ -6,8 +6,11 @@ interface FileExplorerProps {
   isOpen: boolean;
   currentFolder: string | null;
   currentFile: string | null;
+  selectedFiles: string[];
   onSelectFolder: () => void;
   onSelectFile: (filePath: string) => void;
+  onLoadFileInMultiSelect: (filePath: string) => Promise<void>;
+  onFileSelection: (selectedPaths: string[]) => void;
   onCreateFile: (fileName: string) => void;
   onDeleteFile?: (filePath: string) => void;
   refreshTrigger?: number;
@@ -17,8 +20,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   isOpen,
   currentFolder,
   currentFile,
+  selectedFiles,
   onSelectFolder,
   onSelectFile,
+  onLoadFileInMultiSelect,
+  onFileSelection,
   onCreateFile,
   onDeleteFile,
   refreshTrigger = 0,
@@ -47,6 +53,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const [draggedItem, setDraggedItem] = useState<FileEntry | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [dragOverTimer, setDragOverTimer] = useState<number | null>(null);
+
+  // Multi-selection state
+  const [lastSelectedFile, setLastSelectedFile] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentFolder && window.electron) {
@@ -154,17 +163,26 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       const currentEntry = findEntry(currentFile);
       if (!currentEntry) return;
 
-      // Cmd+Backspace: Delete
+      // Cmd+Backspace: Delete (supports multi-selection)
       if (cmdKey && e.key === 'Backspace') {
         e.preventDefault();
-        handleDelete(currentEntry);
+        if (selectedFiles.length > 1) {
+          handleMultiDelete();
+        } else {
+          handleDelete(currentEntry);
+        }
         return;
       }
 
-      // Cmd+C: Copy
+      // Cmd+C: Copy (supports multi-selection)
       if (cmdKey && e.key === 'c') {
         e.preventDefault();
-        setClipboard(currentEntry);
+        if (selectedFiles.length > 1) {
+          // For multi-selection, just set clipboard to current entry as representative
+          setClipboard(currentEntry);
+        } else {
+          setClipboard(currentEntry);
+        }
         return;
       }
 
@@ -175,10 +193,14 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         return;
       }
 
-      // Cmd+D: Duplicate
+      // Cmd+D: Duplicate (supports multi-selection)
       if (cmdKey && e.key === 'd') {
         e.preventDefault();
-        handleDuplicate(currentEntry);
+        if (selectedFiles.length > 1) {
+          handleMultiDuplicate();
+        } else {
+          handleDuplicate(currentEntry);
+        }
         return;
       }
 
@@ -189,10 +211,14 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         return;
       }
 
-      // Delete/Backspace (without Cmd): Delete
+      // Delete/Backspace (without Cmd): Delete (supports multi-selection)
       if ((e.key === 'Delete' || e.key === 'Backspace') && !cmdKey) {
         e.preventDefault();
-        handleDelete(currentEntry);
+        if (selectedFiles.length > 1) {
+          handleMultiDelete();
+        } else {
+          handleDelete(currentEntry);
+        }
         return;
       }
     };
@@ -311,6 +337,14 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const handleContextMenu = (e: React.MouseEvent, entry: FileEntry) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // If right-clicking on a selected file, keep all selections and show multi-context menu
+    // If right-clicking on an unselected file, select only that file
+    if (!selectedFiles.includes(entry.path)) {
+      onSelectFile(entry.path);
+      setLastSelectedFile(entry.path);
+    }
+
     setContextMenu({ x: e.clientX, y: e.clientY, entry });
   };
 
@@ -339,6 +373,40 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       setFolderContents(new Map());
     } else {
       alert('삭제 실패: ' + result.error);
+    }
+
+    setContextMenu(null);
+  };
+
+  const handleMultiDelete = async () => {
+    if (!window.electron || !currentFolder || selectedFiles.length === 0) return;
+
+    const confirmMessage = `선택한 ${selectedFiles.length}개의 파일을 삭제하시겠습니까?`;
+    if (!confirm(confirmMessage)) return;
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const filePath of selectedFiles) {
+      const result = await window.electron.deleteFile(filePath);
+      if (result.success) {
+        successCount++;
+        if (onDeleteFile) {
+          onDeleteFile(filePath);
+        }
+      } else {
+        failCount++;
+        console.error(`Failed to delete ${filePath}:`, result.error);
+      }
+    }
+
+    // 현재 폴더 새로고침
+    const entries = await window.electron.readDirectory(currentFolder);
+    setFiles(entries);
+    setFolderContents(new Map());
+
+    if (failCount > 0) {
+      alert(`${successCount}개 삭제 완료, ${failCount}개 실패`);
     }
 
     setContextMenu(null);
@@ -391,6 +459,34 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       setFolderContents(new Map());
     } else {
       alert('복제 실패: ' + result.error);
+    }
+
+    setContextMenu(null);
+  };
+
+  const handleMultiDuplicate = async () => {
+    if (!window.electron || !currentFolder || selectedFiles.length === 0) return;
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const filePath of selectedFiles) {
+      const result = await window.electron.duplicateItem(filePath);
+      if (result.success) {
+        successCount++;
+      } else {
+        failCount++;
+        console.error(`Failed to duplicate ${filePath}:`, result.error);
+      }
+    }
+
+    // 현재 폴더 새로고침
+    const entries = await window.electron.readDirectory(currentFolder);
+    setFiles(entries);
+    setFolderContents(new Map());
+
+    if (failCount > 0) {
+      alert(`${successCount}개 복제 완료, ${failCount}개 실패`);
     }
 
     setContextMenu(null);
@@ -635,6 +731,91 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     return folders;
   };
 
+  // Get flat list of all files for range selection
+  const getFlatFileList = (): FileEntry[] => {
+    const result: FileEntry[] = [];
+
+    const addEntries = (entries: FileEntry[]) => {
+      const sorted = sortFiles(entries);
+      for (const entry of sorted) {
+        result.push(entry);
+        if (entry.type === 'directory' && expandedFolders.has(entry.path)) {
+          const subEntries = folderContents.get(entry.path);
+          if (subEntries) {
+            addEntries(subEntries);
+          }
+        }
+      }
+    };
+
+    addEntries(files);
+    return result;
+  };
+
+  // Load file content without changing selection (for multi-select)
+  const loadFileContent = async (filePath: string) => {
+    await onLoadFileInMultiSelect(filePath);
+  };
+
+  // Handle file click with modifiers
+  const handleFileClick = async (entry: FileEntry, e: React.MouseEvent) => {
+    if (entry.type === 'directory') {
+      toggleFolder(entry.path);
+      return;
+    }
+
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+    const shiftKey = e.shiftKey;
+
+    if (shiftKey && (lastSelectedFile || selectedFiles.length > 0)) {
+      // Shift click: range selection
+      const flatList = getFlatFileList();
+      const fileList = flatList.filter(f => f.type === 'file');
+      const anchorFile = lastSelectedFile || selectedFiles[0];
+      const lastIndex = fileList.findIndex(f => f.path === anchorFile);
+      const currentIndex = fileList.findIndex(f => f.path === entry.path);
+
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rangeFiles = fileList.slice(start, end + 1).map(f => f.path);
+
+        // Set range as new selection
+        onFileSelection(rangeFiles);
+
+        // Load the clicked file
+        await loadFileContent(entry.path);
+        setLastSelectedFile(entry.path);
+      }
+    } else if (cmdKey) {
+      // Cmd/Ctrl click: toggle individual file
+      const isSelected = selectedFiles.includes(entry.path);
+
+      if (isSelected) {
+        // Deselect
+        const newSelection = selectedFiles.filter(p => p !== entry.path);
+        onFileSelection(newSelection.length > 0 ? newSelection : []);
+
+        // If deselecting current file, select the first remaining
+        if (currentFile === entry.path && newSelection.length > 0) {
+          await loadFileContent(newSelection[0]);
+          setLastSelectedFile(newSelection[0]);
+        }
+      } else {
+        // Add to selection
+        const newSelection = [...selectedFiles, entry.path];
+        onFileSelection(newSelection);
+        await loadFileContent(entry.path);
+        setLastSelectedFile(entry.path);
+      }
+    } else {
+      // Normal click: single selection
+      onSelectFile(entry.path);
+      setLastSelectedFile(entry.path);
+    }
+  };
+
   // Expand all folders
   const handleExpandAll = async () => {
     if (!window.electron || !currentFolder) return;
@@ -808,17 +989,13 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
               onDragLeave={(e) => handleDragLeave(e, entry)}
               onDrop={(e) => handleDrop(e, entry)}
               onDragEnd={handleDragEnd}
-              onClick={() => {
-                if (entry.type === 'directory') {
-                  toggleFolder(entry.path);
-                } else {
-                  onSelectFile(entry.path);
-                }
-              }}
+              onClick={(e) => handleFileClick(entry, e)}
               onContextMenu={(e) => handleContextMenu(e, entry)}
               className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
                 currentFile === entry.path
                   ? 'bg-blue-100 text-blue-700'
+                  : selectedFiles.includes(entry.path)
+                  ? 'bg-blue-50 text-blue-600'
                   : draggedItem?.path === entry.path
                   ? 'opacity-50'
                   : dropTarget === entry.path && entry.type === 'directory'
@@ -1102,6 +1279,32 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
                 </svg>
                 Finder에서 보기
+              </button>
+            </>
+          ) : selectedFiles.length > 1 && selectedFiles.includes(contextMenu.entry.path) ? (
+            // Multi-selection context menu
+            <>
+              <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-200">
+                {selectedFiles.length}개 항목 선택됨
+              </div>
+              <button
+                onClick={handleMultiDuplicate}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                모두 복제
+              </button>
+              <div className="border-t border-gray-200 my-1" />
+              <button
+                onClick={handleMultiDelete}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                모두 삭제
               </button>
             </>
           ) : (
