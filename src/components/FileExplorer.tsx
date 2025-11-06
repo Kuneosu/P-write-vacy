@@ -265,7 +265,17 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   const handleCreateFileSubmit = () => {
     if (newFileName.trim()) {
-      onCreateFile(newFileName.trim());
+      let fileName = newFileName.trim();
+
+      // 확장자가 없으면 .txt 추가
+      const lastDotIndex = fileName.lastIndexOf('.');
+      const hasExtension = lastDotIndex > 0 && lastDotIndex < fileName.length - 1;
+
+      if (!hasExtension) {
+        fileName = fileName + '.txt';
+      }
+
+      onCreateFile(fileName);
       setNewFileName('');
       setIsCreatingFile(false);
     }
