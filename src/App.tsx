@@ -238,6 +238,8 @@ function App() {
     if (!currentFile || !hasUnsavedChanges || !window.electron) return;
 
     const timeoutId = setTimeout(async () => {
+      if (!window.electron) return;
+
       console.log('Auto-saving file:', currentFile);
       console.log('Content to save (length:', content.length, '):', content.substring(0, 100));
       const result = await window.electron.writeFile(currentFile, content);

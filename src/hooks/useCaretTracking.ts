@@ -1,7 +1,7 @@
-import { useState, useEffect, RefObject } from 'react';
+import { useState, useEffect, type RefObject } from 'react';
 import type { CaretPosition } from '../types';
 
-export const useCaretTracking = (editorRef: RefObject<HTMLDivElement>) => {
+export const useCaretTracking = (editorRef: RefObject<HTMLDivElement | null>) => {
   const [caretPosition, setCaretPosition] = useState<CaretPosition>({ x: 50, y: 50 });
 
   const getCaretCoordinates = (): CaretPosition | null => {
