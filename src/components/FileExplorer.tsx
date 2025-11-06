@@ -635,6 +635,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     // Recursively expand all folders
     const expandRecursive = async (folders: FileEntry[]) => {
+      if (!window.electron) return;
+
       for (const folder of folders) {
         newExpanded.add(folder.path);
 

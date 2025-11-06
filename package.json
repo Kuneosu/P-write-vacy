@@ -43,7 +43,7 @@
   },
   "build": {
     "appId": "com.pwritevacy.app",
-    "productName": "P-write-vacy",
+    "productName": "Pwritevacy",
     "files": [
       "dist/**/*",
       "electron/**/*"
@@ -53,6 +53,7 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
+      "icon": "assets/app_icon.png",
       "target": [
         "dmg"
       ]
