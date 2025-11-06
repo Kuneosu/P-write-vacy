@@ -129,9 +129,10 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       // Only handle shortcuts when file explorer is open and a file is selected
       if (!isOpen || !currentFile) return;
 
-      // Don't interfere with input fields
+      // Don't interfere with input fields or contenteditable elements
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      if (target.isContentEditable) return;
 
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const cmdKey = isMac ? e.metaKey : e.ctrlKey;
