@@ -422,7 +422,7 @@ function App() {
       )}
 
       {/* Markdown viewer toggle button */}
-      {isMarkdownFile && (
+      {isMarkdownFile && currentFolder && (
         <button
           onClick={() => setIsMarkdownViewMode((prev) => !prev)}
           className="fixed p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
