@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { FileEntry, SortOrder } from '../types/electron';
 import { Tooltip } from './Tooltip';
 
@@ -33,8 +33,10 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; entry: FileEntry } | null>(null);
+  const [adjustedMenuPosition, setAdjustedMenuPosition] = useState<{ x: number; y: number } | null>(null);
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // Clipboard state for copy/paste
   const [clipboard, setClipboard] = useState<FileEntry | null>(null);
@@ -87,6 +89,35 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     if (contextMenu) {
       document.addEventListener('click', handleClick);
       return () => document.removeEventListener('click', handleClick);
+    }
+  }, [contextMenu]);
+
+  // Adjust context menu position to keep it within window bounds
+  useEffect(() => {
+    if (contextMenu && contextMenuRef.current) {
+      const rect = contextMenuRef.current.getBoundingClientRect();
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      let { x, y } = contextMenu;
+
+      // Adjust horizontal position if menu goes off-screen
+      if (x + rect.width > windowWidth) {
+        x = windowWidth - rect.width - 8;
+      }
+      if (x < 0) {
+        x = 8;
+      }
+
+      // Adjust vertical position if menu goes off-screen
+      if (y + rect.height > windowHeight) {
+        y = windowHeight - rect.height - 8;
+      }
+      if (y < 0) {
+        y = 8;
+      }
+
+      setAdjustedMenuPosition({ x, y });
     }
   }, [contextMenu]);
 
@@ -754,7 +785,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 shadow-lg overflow-y-auto"
       style={{ zIndex: 50, paddingTop: '52px' }}
     >
-      <div className="p-4">
+      <div className="p-4 pb-12">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-700">파일</h3>
           <div className="flex gap-2">
@@ -916,65 +947,117 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
             {renderFileTree(files)}
           </div>
         )}
+
+        {/* Current folder path */}
+        {currentFolder && (
+          <Tooltip content={currentFolder}>
+            <div
+              className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-gray-50 px-4 py-2 cursor-default"
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setContextMenu({
+                  x: e.clientX,
+                  y: e.clientY,
+                  entry: { name: '', path: currentFolder, type: 'directory' } as FileEntry
+                });
+              }}
+            >
+              <div className="text-xs text-gray-600 truncate font-medium">
+                📁 {currentFolder.split('/').pop() || currentFolder}
+              </div>
+            </div>
+          </Tooltip>
+        )}
       </div>
 
       {/* Context Menu */}
       {contextMenu && (
         <div
+          ref={contextMenuRef}
           className="fixed bg-white rounded-md shadow-lg border border-gray-200 py-1 z-[200]"
           style={{
-            left: `${contextMenu.x}px`,
-            top: `${contextMenu.y}px`,
+            left: `${adjustedMenuPosition?.x ?? contextMenu.x}px`,
+            top: `${adjustedMenuPosition?.y ?? contextMenu.y}px`,
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            onClick={() => handleOpenWithDefault(contextMenu.entry)}
-            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            기본 앱에서 열기
-          </button>
-          <button
-            onClick={() => handleRevealInFinder(contextMenu.entry)}
-            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
-            </svg>
-            Finder에서 보기
-          </button>
-          <div className="border-t border-gray-200 my-1" />
-          <button
-            onClick={() => handleDuplicate(contextMenu.entry)}
-            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            복제
-          </button>
-          <button
-            onClick={() => handleRename(contextMenu.entry)}
-            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            이름 변경
-          </button>
-          <div className="border-t border-gray-200 my-1" />
-          <button
-            onClick={() => handleDelete(contextMenu.entry)}
-            className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            삭제
-          </button>
+          {contextMenu.entry.name === '' ? (
+            // Folder path context menu
+            <>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(contextMenu.entry.path);
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                경로 복사
+              </button>
+              <button
+                onClick={() => handleRevealInFinder(contextMenu.entry)}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                </svg>
+                Finder에서 보기
+              </button>
+            </>
+          ) : (
+            // File/folder item context menu
+            <>
+              <button
+                onClick={() => handleOpenWithDefault(contextMenu.entry)}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                기본 앱에서 열기
+              </button>
+              <button
+                onClick={() => handleRevealInFinder(contextMenu.entry)}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                </svg>
+                Finder에서 보기
+              </button>
+              <div className="border-t border-gray-200 my-1" />
+              <button
+                onClick={() => handleDuplicate(contextMenu.entry)}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                복제
+              </button>
+              <button
+                onClick={() => handleRename(contextMenu.entry)}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                이름 변경
+              </button>
+              <div className="border-t border-gray-200 my-1" />
+              <button
+                onClick={() => handleDelete(contextMenu.entry)}
+                className="w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                삭제
+              </button>
+            </>
+          )}
         </div>
       )}
 

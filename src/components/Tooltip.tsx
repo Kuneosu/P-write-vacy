@@ -16,11 +16,35 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, delay = 300
     const rect = e.currentTarget.getBoundingClientRect();
 
     timeoutRef.current = setTimeout(() => {
-      setPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX + rect.width / 2,
-      });
+      // Calculate initial position (below the element)
+      let top = rect.bottom + 8;
+      let left = rect.left + rect.width / 2;
+
       setIsVisible(true);
+      setPosition({ top, left });
+
+      // Adjust position after tooltip is rendered to check its size
+      requestAnimationFrame(() => {
+        if (tooltipRef.current) {
+          const tooltipRect = tooltipRef.current.getBoundingClientRect();
+          const windowWidth = window.innerWidth;
+          const windowHeight = window.innerHeight;
+
+          // Adjust horizontal position if tooltip goes off-screen
+          if (left + tooltipRect.width / 2 > windowWidth) {
+            left = windowWidth - tooltipRect.width / 2 - 8;
+          } else if (left - tooltipRect.width / 2 < 0) {
+            left = tooltipRect.width / 2 + 8;
+          }
+
+          // Adjust vertical position if tooltip goes off-screen (show above instead)
+          if (top + tooltipRect.height > windowHeight) {
+            top = rect.top - tooltipRect.height - 8;
+          }
+
+          setPosition({ top, left });
+        }
+      });
     }, delay);
   };
 
