@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { FileEntry, SortOrder } from '../types/electron';
+import { Tooltip } from './Tooltip';
 
 interface FileExplorerProps {
   isOpen: boolean;
@@ -384,7 +385,6 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, entry: FileEntry) => {
-    console.log('[DragStart]', entry.name, entry.type);
     setDraggedItem(entry);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', entry.path);
@@ -396,14 +396,12 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     // If it's a file (not a directory), treat as root drop zone
     if (entry.type !== 'directory') {
-      console.log('[DragOver] File (treat as root):', entry.name);
       e.stopPropagation(); // Don't let it bubble further
       setDropTarget('root');
       return;
     }
 
     // It's a directory - allow drop on it
-    console.log('[DragOver] Folder:', entry.name);
     e.stopPropagation(); // Prevent bubbling to root drop zone
 
     // If we're hovering over a different folder than before, clear the old timer
@@ -426,8 +424,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   };
 
-  const handleDragLeave = (_e: React.DragEvent, entry: FileEntry) => {
-    console.log('[DragLeave]', entry.name, entry.type);
+  const handleDragLeave = (_e: React.DragEvent, _entry: FileEntry) => {
     // Don't preventDefault or stopPropagation - let it bubble to root
 
     // Don't clear the timer here - child elements can trigger dragLeave
@@ -438,11 +435,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   };
 
   const handleDrop = async (e: React.DragEvent, targetEntry: FileEntry) => {
-    console.log('[Drop] On:', targetEntry.name, targetEntry.type, 'dropTarget:', dropTarget);
-
     // If dropping on a file and dropTarget is 'root', let it bubble to root
     if (targetEntry.type !== 'directory' && dropTarget === 'root') {
-      console.log('[Drop] File drop with root target - letting bubble to root');
       // Don't preventDefault or stopPropagation - let it bubble
       return;
     }
@@ -459,25 +453,21 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setDropTarget(null);
 
     if (!draggedItem || !window.electron || !currentFolder) {
-      console.log('[Drop] Aborted: missing draggedItem or electron');
       return;
     }
 
     // Can't drop on files, only on directories
     if (targetEntry.type !== 'directory') {
-      console.log('[Drop] Aborted: target is not a directory');
       return;
     }
 
     // Can't drop on itself
     if (draggedItem.path === targetEntry.path) {
-      console.log('[Drop] Aborted: dropping on itself');
       return;
     }
 
     // Can't drop parent folder into its child
     if (targetEntry.path.startsWith(draggedItem.path + '/')) {
-      console.log('[Drop] Aborted: parent to child move');
       alert('하위 폴더로 이동할 수 없습니다.');
       setDraggedItem(null);
       return;
@@ -487,9 +477,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     const fileName = draggedItem.name;
     const newPath = `${targetEntry.path}/${fileName}`;
 
-    console.log('[Drop] Moving:', draggedItem.name, '->', newPath);
     const result = await window.electron.renameFile(draggedItem.path, newPath);
-    console.log('[Drop] Result:', result);
     if (result.success) {
       // Refresh current folder
       const entries = await window.electron.readDirectory(currentFolder);
@@ -510,7 +498,6 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   };
 
   const handleDropToRoot = async (e: React.DragEvent) => {
-    console.log('[DropToRoot] dropTarget:', dropTarget);
     e.preventDefault();
 
     // Clear the timer when dropping
@@ -522,14 +509,12 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setDropTarget(null);
 
     if (!draggedItem || !window.electron || !currentFolder) {
-      console.log('[DropToRoot] Aborted: missing draggedItem or electron');
       return;
     }
 
     // Can't drop if already in root
     const draggedItemParent = draggedItem.path.substring(0, draggedItem.path.lastIndexOf('/'));
     if (draggedItemParent === currentFolder) {
-      console.log('[DropToRoot] Aborted: already in root');
       setDraggedItem(null);
       return;
     }
@@ -538,9 +523,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     const fileName = draggedItem.name;
     const newPath = `${currentFolder}/${fileName}`;
 
-    console.log('[DropToRoot] Moving:', draggedItem.name, '->', newPath);
     const result = await window.electron.renameFile(draggedItem.path, newPath);
-    console.log('[DropToRoot] Result:', result);
     if (result.success) {
       // Refresh current folder
       const entries = await window.electron.readDirectory(currentFolder);
@@ -561,7 +544,6 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   };
 
   const handleDragEnd = () => {
-    console.log('[DragEnd]');
     // Clear the timer when drag ends
     if (dragOverTimer) {
       clearTimeout(dragOverTimer);
@@ -619,6 +601,68 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     return null;
   };
 
+  const formatDate = (date: Date | undefined): string => {
+    if (!date) return '알 수 없음';
+
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return '방금 전';
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    if (diffDays < 7) return `${diffDays}일 전`;
+
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getFolderStats = (folderPath: string): { files: number; folders: number } | null => {
+    const contents = folderContents.get(folderPath);
+    if (!contents) return null;
+
+    const files = contents.filter(e => e.type === 'file').length;
+    const folders = contents.filter(e => e.type === 'directory').length;
+    return { files, folders };
+  };
+
+  const getFileTooltipContent = (entry: FileEntry): React.ReactNode => {
+    return (
+      <div className="space-y-1">
+        <div className="font-medium">{entry.name}</div>
+        <div className="text-xs text-gray-300">
+          <div>수정: {formatDate(entry.modified)}</div>
+          <div>생성: {formatDate(entry.created)}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const getFolderTooltipContent = (entry: FileEntry): React.ReactNode => {
+    const stats = getFolderStats(entry.path);
+
+    return (
+      <div className="space-y-1">
+        <div className="font-medium">{entry.name}</div>
+        {stats ? (
+          <div className="text-xs text-gray-300">
+            <div>폴더 {stats.folders}개</div>
+            <div>파일 {stats.files}개</div>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-300">클릭하여 내용 확인</div>
+        )}
+      </div>
+    );
+  };
+
   const renderFileTree = (entries: FileEntry[], depth: number = 0): React.ReactNode => {
     return sortFiles(entries).map((entry) => (
       <div key={entry.path}>
@@ -645,50 +689,52 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </div>
         ) : (
           // Normal mode
-          <button
-            draggable
-            onDragStart={(e) => handleDragStart(e, entry)}
-            onDragOver={(e) => handleDragOver(e, entry)}
-            onDragLeave={(e) => handleDragLeave(e, entry)}
-            onDrop={(e) => handleDrop(e, entry)}
-            onDragEnd={handleDragEnd}
-            onClick={() => {
-              if (entry.type === 'directory') {
-                toggleFolder(entry.path);
-              } else {
-                onSelectFile(entry.path);
-              }
-            }}
-            onContextMenu={(e) => handleContextMenu(e, entry)}
-            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
-              currentFile === entry.path
-                ? 'bg-blue-100 text-blue-700'
-                : draggedItem?.path === entry.path
-                ? 'opacity-50'
-                : dropTarget === entry.path && entry.type === 'directory'
-                ? 'bg-green-100 border-2 border-green-400'
-                : 'hover:bg-gray-100 text-gray-700'
-            }`}
-            style={{ paddingLeft: `${8 + depth * 16}px` }}
-          >
-            {entry.type === 'directory' && (
-              <svg
-                className={`w-3 h-3 transition-transform ${
-                  expandedFolders.has(entry.path) ? 'rotate-90' : ''
-                }`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
-            {entry.type === 'file' && <span className="w-3" />}
-            <span className="flex-1 truncate">{entry.name}</span>
-          </button>
+          <Tooltip content={entry.type === 'file' ? getFileTooltipContent(entry) : getFolderTooltipContent(entry)}>
+            <button
+              draggable
+              onDragStart={(e) => handleDragStart(e, entry)}
+              onDragOver={(e) => handleDragOver(e, entry)}
+              onDragLeave={(e) => handleDragLeave(e, entry)}
+              onDrop={(e) => handleDrop(e, entry)}
+              onDragEnd={handleDragEnd}
+              onClick={() => {
+                if (entry.type === 'directory') {
+                  toggleFolder(entry.path);
+                } else {
+                  onSelectFile(entry.path);
+                }
+              }}
+              onContextMenu={(e) => handleContextMenu(e, entry)}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
+                currentFile === entry.path
+                  ? 'bg-blue-100 text-blue-700'
+                  : draggedItem?.path === entry.path
+                  ? 'opacity-50'
+                  : dropTarget === entry.path && entry.type === 'directory'
+                  ? 'bg-green-100 border-2 border-green-400'
+                  : 'hover:bg-gray-100 text-gray-700'
+              }`}
+              style={{ paddingLeft: `${8 + depth * 16}px` }}
+            >
+              {entry.type === 'directory' && (
+                <svg
+                  className={`w-3 h-3 transition-transform ${
+                    expandedFolders.has(entry.path) ? 'rotate-90' : ''
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+              {entry.type === 'file' && <span className="w-3" />}
+              <span className="flex-1 truncate">{entry.name}</span>
+            </button>
+          </Tooltip>
         )}
         {entry.type === 'directory' &&
          expandedFolders.has(entry.path) &&
@@ -714,34 +760,37 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           <div className="flex gap-2">
             {currentFolder && (
               <>
-                <button
-                  onClick={() => setIsCreatingFile(true)}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  title="새 파일"
-                >
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setIsCreatingFolder(true)}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  title="새 폴더"
-                >
-                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                  </svg>
-                </button>
-                <div className="relative sort-menu-container">
+                <Tooltip content="새 파일 만들기">
                   <button
-                    onClick={() => setShowSortMenu(!showSortMenu)}
+                    onClick={() => setIsCreatingFile(true)}
                     className="p-1 hover:bg-gray-100 rounded transition-colors"
-                    title="정렬 순서"
                   >
                     <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </button>
+                </Tooltip>
+                <Tooltip content="새 폴더 만들기">
+                  <button
+                    onClick={() => setIsCreatingFolder(true)}
+                    className="p-1 hover:bg-gray-100 rounded transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    </svg>
+                  </button>
+                </Tooltip>
+                <div className="relative sort-menu-container">
+                  <Tooltip content="정렬 순서 변경">
+                    <button
+                      onClick={() => setShowSortMenu(!showSortMenu)}
+                      className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                      </svg>
+                    </button>
+                  </Tooltip>
                   {showSortMenu && (
                     <div className="absolute right-0 mt-1 w-44 bg-white rounded-md shadow-lg border border-gray-200 z-10 sort-menu-container" style={{ marginRight: '4px' }}>
                       {(['name-asc', 'name-desc', 'modified-desc', 'modified-asc', 'created-desc', 'created-asc'] as SortOrder[]).map((order) => (
@@ -763,15 +812,16 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
                 </div>
               </>
             )}
-            <button
-              onClick={onSelectFolder}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="폴더 열기"
-            >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-              </svg>
-            </button>
+            <Tooltip content="작업 폴더 선택">
+              <button
+                onClick={onSelectFolder}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -847,20 +897,17 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           <div
             className="space-y-1 min-h-[200px]"
             onDragOver={(e) => {
-              console.log('[RootDragOver]');
               e.preventDefault();
               e.dataTransfer.dropEffect = 'move';
               setDropTarget('root');
             }}
             onDragLeave={(e) => {
-              console.log('[RootDragLeave]');
               e.preventDefault();
               // Only clear if we're leaving the root area completely
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX;
               const y = e.clientY;
               if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-                console.log('[RootDragLeave] Actually leaving, clearing dropTarget');
                 setDropTarget(null);
               }
             }}
