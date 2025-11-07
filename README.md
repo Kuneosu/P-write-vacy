@@ -41,7 +41,39 @@
 - Electron (데스크톱 앱)
 - TailwindCSS (스타일링)
 - React Markdown + remark-gfm (마크다운 렌더링)
+- Jest + React Testing Library (테스트)
 - 순수 브라우저 API (Selection API, ContentEditable)
+
+## 테스트
+
+프로젝트는 포괄적인 테스트 커버리지를 갖추고 있습니다:
+
+- **총 테스트**: 106개
+- **테스트 커버리지**: 89.37%
+- **테스트 스위트**: 6개
+
+```bash
+# 테스트 실행
+npm test
+
+# Watch 모드로 테스트
+npm run test:watch
+
+# 커버리지 리포트 생성
+npm run test:coverage
+
+# 상세 출력 모드
+npm run test:verbose
+```
+
+### 테스트 구조
+
+- `useFileTree.test.ts` - 파일 트리 관리 (12개 테스트)
+- `useFileOperations.test.ts` - CRUD 작업 (32개 테스트)
+- `useFileSelection.test.ts` - 다중 선택 (12개 테스트)
+- `useDragAndDrop.test.ts` - 드래그 앤 드롭 (18개 테스트)
+- `useKeyboardShortcuts.test.ts` - 키보드 단축키 (22개 테스트)
+- `FileExplorer.test.tsx` - 통합 테스트 (10개 테스트)
 
 ## 시작하기
 
@@ -97,19 +129,35 @@ npm run electron:build
 ```
 src/
 ├── components/
-│   ├── Editor.tsx           # 메인 텍스트 에디터
-│   ├── FocusOverlay.tsx     # 프라이버시 블러 오버레이
-│   ├── FileExplorer.tsx     # 파일 탐색기
-│   ├── MarkdownViewer.tsx   # 마크다운 뷰어
-│   ├── Sidebar.tsx          # 설정 패널
-│   └── SettingsButton.tsx   # 설정 버튼
+│   ├── Editor.tsx              # 메인 텍스트 에디터
+│   ├── FocusOverlay.tsx        # 프라이버시 블러 오버레이
+│   ├── FileExplorer/           # 파일 탐색기 (모듈화)
+│   │   ├── FileExplorer.tsx
+│   │   ├── components/         # UI 컴포넌트
+│   │   ├── hooks/              # 커스텀 훅
+│   │   ├── utils/              # 유틸리티 함수
+│   │   └── __tests__/          # 테스트 파일
+│   ├── MarkdownViewer.tsx      # 마크다운 뷰어
+│   ├── Sidebar.tsx             # 설정 패널
+│   ├── SettingsButton.tsx      # 설정 버튼
+│   ├── SaveStatus.tsx          # 저장 상태 표시
+│   ├── Toast.tsx               # 토스트 알림
+│   ├── ErrorBoundary.tsx       # 에러 처리
+│   ├── Tooltip.tsx             # 도움말
+│   └── __tests__/              # 컴포넌트 테스트
 ├── hooks/
-│   └── useCaretTracking.ts  # 커서 위치 추적 훅
+│   └── useCaretTracking.ts     # 커서 위치 추적 훅
+├── contexts/
+│   └── ToastContext.tsx        # 토스트 전역 상태
+├── test-utils/
+│   └── testUtils.tsx           # 테스트 유틸리티
 ├── types/
-│   ├── index.ts             # TypeScript 타입 정의
-│   └── electron.d.ts        # Electron API 타입
-├── App.tsx                  # 메인 앱 컴포넌트
-└── main.tsx                 # 진입점
+│   ├── index.ts                # TypeScript 타입 정의
+│   └── electron.d.ts           # Electron API 타입
+├── __mocks__/
+│   └── electron.ts             # Electron API 모킹
+├── App.tsx                     # 메인 앱 컴포넌트
+└── main.tsx                    # 진입점
 ```
 
 ## 빌드 결과물
