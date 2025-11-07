@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { FileEntry, SortOrder } from '../types/electron';
 import { Tooltip } from './Tooltip';
+import { useToast } from '../contexts/ToastContext';
 
 interface FileExplorerProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   onDeleteFile,
   refreshTrigger = 0,
 }) => {
+  const toast = useToast();
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [folderContents, setFolderContents] = useState<Map<string, FileEntry[]>>(new Map());
@@ -331,8 +333,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       setFiles(entries);
       // 폴더 내용 캐시 초기화
       setFolderContents(new Map());
+      toast.success('폴더가 생성되었습니다');
     } else {
-      alert('폴더 생성 실패: ' + result.error);
+      toast.error('폴더 생성 실패: ' + result.error);
     }
   };
 
@@ -384,8 +387,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       const entries = await window.electron.readDirectory(currentFolder);
       setFiles(entries);
       setFolderContents(new Map());
+      toast.success('삭제되었습니다');
     } else {
-      alert('삭제 실패: ' + result.error);
+      toast.error('삭제 실패: ' + result.error);
     }
 
     setContextMenu(null);
@@ -425,7 +429,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setFolderContents(new Map());
 
     if (failCount > 0) {
-      alert(`${successCount}개 삭제 완료, ${failCount}개 실패`);
+      toast.warning(`${successCount}개 삭제 완료, ${failCount}개 실패`);
+    } else {
+      toast.success(`${successCount}개 항목이 삭제되었습니다`);
     }
 
     setContextMenu(null);
@@ -454,8 +460,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         setFiles(entries);
         setFolderContents(new Map());
       }
+      toast.success('이름이 변경되었습니다');
     } else {
-      alert('이름 변경 실패: ' + result.error);
+      toast.error('이름 변경 실패: ' + result.error);
     }
 
     setIsRenaming(null);
@@ -476,8 +483,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       const entries = await window.electron.readDirectory(currentFolder);
       setFiles(entries);
       setFolderContents(new Map());
+      toast.success('복제되었습니다');
     } else {
-      alert('복제 실패: ' + result.error);
+      toast.error('복제 실패: ' + result.error);
     }
 
     setContextMenu(null);
@@ -505,7 +513,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setFolderContents(new Map());
 
     if (failCount > 0) {
-      alert(`${successCount}개 복제 완료, ${failCount}개 실패`);
+      toast.warning(`${successCount}개 복제 완료, ${failCount}개 실패`);
+    } else {
+      toast.success(`${successCount}개 항목이 복제되었습니다`);
     }
 
     setContextMenu(null);
@@ -533,7 +543,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setFolderContents(new Map());
 
     if (failCount > 0) {
-      alert(`${successCount}개 붙여넣기 완료, ${failCount}개 실패`);
+      toast.warning(`${successCount}개 붙여넣기 완료, ${failCount}개 실패`);
+    } else {
+      toast.success(`${successCount}개 항목이 붙여넣기 되었습니다`);
     }
   };
 
@@ -542,7 +554,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     const result = await window.electron.openWithDefault(entry.path);
     if (!result.success) {
-      alert('열기 실패: ' + result.error);
+      toast.error('열기 실패: ' + result.error);
     }
 
     setContextMenu(null);
@@ -553,7 +565,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     const result = await window.electron.revealInFinder(entry.path);
     if (!result.success) {
-      alert('Finder에서 보기 실패: ' + result.error);
+      toast.error('Finder에서 보기 실패: ' + result.error);
     }
 
     setContextMenu(null);
@@ -673,7 +685,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
       // Can't drop parent folder into its child
       if (targetEntry.path.startsWith(draggedItem.path + '/')) {
-        alert('하위 폴더로 이동할 수 없습니다.');
+        toast.warning('하위 폴더로 이동할 수 없습니다.');
         continue;
       }
 
@@ -703,7 +715,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setFolderContents(newFolderContents);
 
     if (failCount > 0) {
-      alert(`${successCount}개 이동 완료, ${failCount}개 실패`);
+      toast.warning(`${successCount}개 이동 완료, ${failCount}개 실패`);
+    } else if (successCount > 0) {
+      toast.success(`${successCount}개 항목이 이동되었습니다`);
     }
 
     setDraggedItems([]);
@@ -760,7 +774,9 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     setFolderContents(newFolderContents);
 
     if (failCount > 0) {
-      alert(`${successCount}개 이동 완료, ${failCount}개 실패`);
+      toast.warning(`${successCount}개 이동 완료, ${failCount}개 실패`);
+    } else if (successCount > 0) {
+      toast.success(`${successCount}개 항목이 이동되었습니다`);
     }
 
     setDraggedItems([]);

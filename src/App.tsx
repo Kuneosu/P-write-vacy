@@ -5,6 +5,9 @@ import { SettingsButton } from "./components/SettingsButton";
 import { FileExplorer } from "./components/FileExplorer";
 import { MarkdownViewer } from "./components/MarkdownViewer";
 import { Tooltip } from "./components/Tooltip";
+import { SaveStatus } from "./components/SaveStatus";
+import type { SaveStatusType } from "./components/SaveStatus";
+import { useToast } from "./contexts/ToastContext";
 import type { FocusSettings, Preset } from "./types";
 
 const STORAGE_KEYS = {
@@ -27,6 +30,7 @@ const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
 };
 
 function App() {
+  const toast = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [privacyActive, setPrivacyActive] = useState(true);
   const [content, setContent] = useState("");
@@ -47,12 +51,19 @@ function App() {
   // Markdown viewer state
   const [isMarkdownViewMode, setIsMarkdownViewMode] = useState(false);
 
+  // Save status state
+  const [saveStatus, setSaveStatus] = useState<SaveStatusType>('saved');
+  const [saveError, setSaveError] = useState<string | undefined>();
+  const [showSaveStatus, setShowSaveStatus] = useState(false);
+  const [savedFileName, setSavedFileName] = useState<string | undefined>();
+
   // Check if current file is markdown
   const isMarkdownFile = currentFile?.toLowerCase().match(/\.(md|markdown)$/) !== null;
 
-  // Reset markdown view mode when file changes
+  // Reset markdown view mode when file changes (but keep save status if showing)
   useEffect(() => {
     setIsMarkdownViewMode(false);
+    // Don't reset save status here - let it display for the previous file
   }, [currentFile]);
 
   // Clear content and file when folder changes or is deselected
@@ -214,7 +225,7 @@ function App() {
   // Preset handlers
   const handleSavePreset = (name: string) => {
     if (presets.length >= 3) {
-      alert("최대 3개의 프리셋만 저장할 수 있습니다.");
+      toast.warning("최대 3개의 프리셋만 저장할 수 있습니다.");
       return;
     }
 
@@ -258,8 +269,20 @@ function App() {
 
     // Save current file if there are unsaved changes
     if (currentFile && hasUnsavedChanges) {
-      await window.electron.writeFile(currentFile, content);
+      const previousFileName = currentFile.split('/').pop() || currentFile;
+      const saveResult = await window.electron.writeFile(currentFile, content);
       setHasUnsavedChanges(false);
+
+      if (saveResult.success) {
+        // Show save confirmation with previous file name
+        setSaveStatus('saved');
+        setSavedFileName(previousFileName);
+        setShowSaveStatus(true);
+        setTimeout(() => {
+          setShowSaveStatus(false);
+          setSavedFileName(undefined);
+        }, 1500);
+      }
     }
 
     // Load new file
@@ -274,7 +297,7 @@ function App() {
       setHasUnsavedChanges(false);
     } else {
       console.error("Failed to read file:", result.error);
-      alert("파일 읽기 실패: " + result.error);
+      toast.error("파일 읽기 실패: " + result.error);
     }
   };
 
@@ -295,8 +318,20 @@ function App() {
 
     // Save current file if there are unsaved changes
     if (currentFile && hasUnsavedChanges) {
-      await window.electron.writeFile(currentFile, content);
+      const previousFileName = currentFile.split('/').pop() || currentFile;
+      const saveResult = await window.electron.writeFile(currentFile, content);
       setHasUnsavedChanges(false);
+
+      if (saveResult.success) {
+        // Show save confirmation with previous file name
+        setSaveStatus('saved');
+        setSavedFileName(previousFileName);
+        setShowSaveStatus(true);
+        setTimeout(() => {
+          setShowSaveStatus(false);
+          setSavedFileName(undefined);
+        }, 1500);
+      }
     }
 
     // Load new file without resetting selectedFiles
@@ -308,7 +343,7 @@ function App() {
       setHasUnsavedChanges(false);
     } else {
       console.error("Failed to read file:", result.error);
-      alert("파일 읽기 실패: " + result.error);
+      toast.error("파일 읽기 실패: " + result.error);
     }
   };
 
@@ -322,8 +357,9 @@ function App() {
       setHasUnsavedChanges(false);
       // Trigger file list reload
       setRefreshTrigger((prev) => prev + 1);
+      toast.success("파일이 생성되었습니다");
     } else {
-      alert("파일 생성 실패: " + result.error);
+      toast.error("파일 생성 실패: " + result.error);
     }
   };
 
@@ -342,8 +378,11 @@ function App() {
   useEffect(() => {
     if (!currentFile || !hasUnsavedChanges || !window.electron) return;
 
+    // Don't show "saving" status - only show when saved or error
+    setSaveError(undefined);
+
     const timeoutId = setTimeout(async () => {
-      if (!window.electron) return;
+      if (!window.electron || !currentFile) return;
 
       console.log('Auto-saving file:', currentFile);
       console.log('Content to save (length:', content.length, '):', content.substring(0, 100));
@@ -351,13 +390,31 @@ function App() {
       if (result.success) {
         console.log('File saved successfully');
         setHasUnsavedChanges(false);
+        setSaveStatus('saved');
+        setSavedFileName(undefined); // Auto-save doesn't show file name
+        setShowSaveStatus(true);
+
+        // Hide "saved" status after 1.5 seconds
+        setTimeout(() => {
+          setShowSaveStatus(false);
+        }, 1500);
       } else {
         console.error('Failed to save file:', result.error);
+        setSaveStatus('error');
+        setSaveError(result.error);
+        setShowSaveStatus(true);
+
+        // Hide error status after 5 seconds
+        setTimeout(() => {
+          setShowSaveStatus(false);
+        }, 5000);
       }
     }, 1000); // Save after 1 second of inactivity
 
     return () => clearTimeout(timeoutId);
   }, [content, currentFile, hasUnsavedChanges]);
+
+  // Don't show unsaved status - only show saving/saved/error states
 
   return (
     <div
@@ -631,6 +688,15 @@ function App() {
         onUpdatePreset={handleUpdatePreset}
         onDeletePreset={handleDeletePreset}
       />
+
+      {/* Save status indicator - only show when needed */}
+      {currentFile && showSaveStatus && (
+        <SaveStatus
+          status={saveStatus}
+          errorMessage={saveError}
+          savedFileName={savedFileName}
+        />
+      )}
     </div>
   );
 }
