@@ -11,6 +11,7 @@ interface FileExplorerProps {
   onSelectFile: (filePath: string) => void;
   onLoadFileInMultiSelect: (filePath: string) => Promise<void>;
   onFileSelection: (selectedPaths: string[]) => void;
+  onFolderSelection: (folderPath: string) => void;
   onCreateFile: (fileName: string) => void;
   onDeleteFile?: (filePath: string) => void;
   refreshTrigger?: number;
@@ -25,6 +26,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   onSelectFile,
   onLoadFileInMultiSelect,
   onFileSelection,
+  onFolderSelection,
   onCreateFile,
   onDeleteFile,
   refreshTrigger = 0,
@@ -46,11 +48,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const [renameValue, setRenameValue] = useState('');
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
-  // Clipboard state for copy/paste
-  const [clipboard, setClipboard] = useState<FileEntry | null>(null);
+  // Clipboard state for copy/paste (supports multiple files)
+  const [clipboard, setClipboard] = useState<FileEntry[]>([]);
 
-  // Drag and drop state
-  const [draggedItem, setDraggedItem] = useState<FileEntry | null>(null);
+  // Drag and drop state (supports multiple items)
+  const [draggedItems, setDraggedItems] = useState<FileEntry[]>([]);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [dragOverTimer, setDragOverTimer] = useState<number | null>(null);
 
@@ -135,8 +137,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle shortcuts when file explorer is open and a file is selected
-      if (!isOpen || !currentFile) return;
+      // Only handle shortcuts when file explorer is open and something is selected
+      if (!isOpen || selectedFiles.length === 0) return;
 
       // Don't interfere with input fields or contenteditable elements
       const target = e.target as HTMLElement;
@@ -146,7 +148,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const cmdKey = isMac ? e.metaKey : e.ctrlKey;
 
-      // Find the currently selected file entry
+      // Find the currently selected entry (first selected item)
       const findEntry = (path: string): FileEntry | null => {
         // Search in root files
         const rootEntry = files.find(f => f.path === path);
@@ -160,7 +162,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
         return null;
       };
 
-      const currentEntry = findEntry(currentFile);
+      const currentEntry = findEntry(selectedFiles[0]);
       if (!currentEntry) return;
 
       // Cmd+Backspace: Delete (supports multi-selection)
@@ -178,16 +180,21 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       if (cmdKey && e.key === 'c') {
         e.preventDefault();
         if (selectedFiles.length > 1) {
-          // For multi-selection, just set clipboard to current entry as representative
-          setClipboard(currentEntry);
+          // Copy all selected files
+          const entriesToCopy: FileEntry[] = [];
+          for (const path of selectedFiles) {
+            const entry = findEntry(path);
+            if (entry) entriesToCopy.push(entry);
+          }
+          setClipboard(entriesToCopy);
         } else {
-          setClipboard(currentEntry);
+          setClipboard([currentEntry]);
         }
         return;
       }
 
       // Cmd+V: Paste (duplicate)
-      if (cmdKey && e.key === 'v' && clipboard) {
+      if (cmdKey && e.key === 'v' && clipboard.length > 0) {
         e.preventDefault();
         handlePaste();
         return;
@@ -225,7 +232,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentFile, files, folderContents, clipboard, isRenaming]);
+  }, [isOpen, selectedFiles, files, folderContents, clipboard, isRenaming]);
 
   // Cleanup drag over timer on unmount
   useEffect(() => {
@@ -338,10 +345,16 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
-    // If right-clicking on a selected file, keep all selections and show multi-context menu
-    // If right-clicking on an unselected file, select only that file
+    // If right-clicking on a selected item, keep all selections and show multi-context menu
+    // If right-clicking on an unselected item, select only that item
     if (!selectedFiles.includes(entry.path)) {
-      onSelectFile(entry.path);
+      if (entry.type === 'file') {
+        // File: load it
+        onSelectFile(entry.path);
+      } else {
+        // Folder: just select it without loading
+        onFileSelection([entry.path]);
+      }
       setLastSelectedFile(entry.path);
     }
 
@@ -381,22 +394,28 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const handleMultiDelete = async () => {
     if (!window.electron || !currentFolder || selectedFiles.length === 0) return;
 
-    const confirmMessage = `선택한 ${selectedFiles.length}개의 파일을 삭제하시겠습니까?`;
+    const confirmMessage = `선택한 ${selectedFiles.length}개의 항목을 삭제하시겠습니까?`;
     if (!confirm(confirmMessage)) return;
 
     let successCount = 0;
     let failCount = 0;
 
-    for (const filePath of selectedFiles) {
-      const result = await window.electron.deleteFile(filePath);
+    for (const itemPath of selectedFiles) {
+      const item = findEntryInAll(itemPath);
+      if (!item) continue;
+
+      const result = item.type === 'directory'
+        ? await window.electron.deleteFolder(itemPath)
+        : await window.electron.deleteFile(itemPath);
+
       if (result.success) {
         successCount++;
         if (onDeleteFile) {
-          onDeleteFile(filePath);
+          onDeleteFile(itemPath);
         }
       } else {
         failCount++;
-        console.error(`Failed to delete ${filePath}:`, result.error);
+        console.error(`Failed to delete ${itemPath}:`, result.error);
       }
     }
 
@@ -493,16 +512,28 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   };
 
   const handlePaste = async () => {
-    if (!clipboard || !window.electron || !currentFolder) return;
+    if (clipboard.length === 0 || !window.electron || !currentFolder) return;
 
-    const result = await window.electron.duplicateItem(clipboard.path);
-    if (result.success) {
-      // 현재 폴더 새로고침
-      const entries = await window.electron.readDirectory(currentFolder);
-      setFiles(entries);
-      setFolderContents(new Map());
-    } else {
-      alert('붙여넣기 실패: ' + result.error);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const item of clipboard) {
+      const result = await window.electron.duplicateItem(item.path);
+      if (result.success) {
+        successCount++;
+      } else {
+        failCount++;
+        console.error(`Failed to paste ${item.path}:`, result.error);
+      }
+    }
+
+    // 현재 폴더 새로고침
+    const entries = await window.electron.readDirectory(currentFolder);
+    setFiles(entries);
+    setFolderContents(new Map());
+
+    if (failCount > 0) {
+      alert(`${successCount}개 붙여넣기 완료, ${failCount}개 실패`);
     }
   };
 
@@ -530,9 +561,34 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, entry: FileEntry) => {
-    setDraggedItem(entry);
+    // If dragging a selected file, drag all selected files
+    // If dragging an unselected file, drag only that file
+    if (selectedFiles.includes(entry.path) && selectedFiles.length > 1) {
+      const entriesToDrag: FileEntry[] = [];
+      for (const path of selectedFiles) {
+        const foundEntry = findEntryInAll(path);
+        if (foundEntry) entriesToDrag.push(foundEntry);
+      }
+      setDraggedItems(entriesToDrag);
+    } else {
+      setDraggedItems([entry]);
+    }
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', entry.path);
+  };
+
+  // Helper to find entry in all files and folders
+  const findEntryInAll = (path: string): FileEntry | null => {
+    // Search in root files
+    const rootEntry = files.find(f => f.path === path);
+    if (rootEntry) return rootEntry;
+
+    // Search in expanded folders
+    for (const [, entries] of folderContents) {
+      const entry = entries.find(f => f.path === path);
+      if (entry) return entry;
+    }
+    return null;
   };
 
   const handleDragOver = (e: React.DragEvent, entry: FileEntry) => {
@@ -597,7 +653,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     setDropTarget(null);
 
-    if (!draggedItem || !window.electron || !currentFolder) {
+    if (draggedItems.length === 0 || !window.electron || !currentFolder) {
       return;
     }
 
@@ -606,40 +662,51 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       return;
     }
 
-    // Can't drop on itself
-    if (draggedItem.path === targetEntry.path) {
-      return;
-    }
+    let successCount = 0;
+    let failCount = 0;
 
-    // Can't drop parent folder into its child
-    if (targetEntry.path.startsWith(draggedItem.path + '/')) {
-      alert('하위 폴더로 이동할 수 없습니다.');
-      setDraggedItem(null);
-      return;
-    }
-
-    // Move the file/folder
-    const fileName = draggedItem.name;
-    const newPath = `${targetEntry.path}/${fileName}`;
-
-    const result = await window.electron.renameFile(draggedItem.path, newPath);
-    if (result.success) {
-      // Refresh current folder
-      const entries = await window.electron.readDirectory(currentFolder);
-      setFiles(entries);
-
-      // Reload all expanded folders to keep them open
-      const newFolderContents = new Map<string, FileEntry[]>();
-      for (const folderPath of expandedFolders) {
-        const folderEntries = await window.electron.readDirectory(folderPath);
-        newFolderContents.set(folderPath, folderEntries);
+    for (const draggedItem of draggedItems) {
+      // Can't drop on itself
+      if (draggedItem.path === targetEntry.path) {
+        continue;
       }
-      setFolderContents(newFolderContents);
-    } else {
-      alert('이동 실패: ' + result.error);
+
+      // Can't drop parent folder into its child
+      if (targetEntry.path.startsWith(draggedItem.path + '/')) {
+        alert('하위 폴더로 이동할 수 없습니다.');
+        continue;
+      }
+
+      // Move the file/folder
+      const fileName = draggedItem.name;
+      const newPath = `${targetEntry.path}/${fileName}`;
+
+      const result = await window.electron.renameFile(draggedItem.path, newPath);
+      if (result.success) {
+        successCount++;
+      } else {
+        failCount++;
+        console.error(`Failed to move ${draggedItem.path}:`, result.error);
+      }
     }
 
-    setDraggedItem(null);
+    // Refresh current folder
+    const entries = await window.electron.readDirectory(currentFolder);
+    setFiles(entries);
+
+    // Reload all expanded folders to keep them open
+    const newFolderContents = new Map<string, FileEntry[]>();
+    for (const folderPath of expandedFolders) {
+      const folderEntries = await window.electron.readDirectory(folderPath);
+      newFolderContents.set(folderPath, folderEntries);
+    }
+    setFolderContents(newFolderContents);
+
+    if (failCount > 0) {
+      alert(`${successCount}개 이동 완료, ${failCount}개 실패`);
+    }
+
+    setDraggedItems([]);
   };
 
   const handleDropToRoot = async (e: React.DragEvent) => {
@@ -653,39 +720,50 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
     setDropTarget(null);
 
-    if (!draggedItem || !window.electron || !currentFolder) {
+    if (draggedItems.length === 0 || !window.electron || !currentFolder) {
       return;
     }
 
-    // Can't drop if already in root
-    const draggedItemParent = draggedItem.path.substring(0, draggedItem.path.lastIndexOf('/'));
-    if (draggedItemParent === currentFolder) {
-      setDraggedItem(null);
-      return;
-    }
+    let successCount = 0;
+    let failCount = 0;
 
-    // Move to root
-    const fileName = draggedItem.name;
-    const newPath = `${currentFolder}/${fileName}`;
-
-    const result = await window.electron.renameFile(draggedItem.path, newPath);
-    if (result.success) {
-      // Refresh current folder
-      const entries = await window.electron.readDirectory(currentFolder);
-      setFiles(entries);
-
-      // Reload all expanded folders to keep them open
-      const newFolderContents = new Map<string, FileEntry[]>();
-      for (const folderPath of expandedFolders) {
-        const folderEntries = await window.electron.readDirectory(folderPath);
-        newFolderContents.set(folderPath, folderEntries);
+    for (const draggedItem of draggedItems) {
+      // Can't drop if already in root
+      const draggedItemParent = draggedItem.path.substring(0, draggedItem.path.lastIndexOf('/'));
+      if (draggedItemParent === currentFolder) {
+        continue;
       }
-      setFolderContents(newFolderContents);
-    } else {
-      alert('이동 실패: ' + result.error);
+
+      // Move to root
+      const fileName = draggedItem.name;
+      const newPath = `${currentFolder}/${fileName}`;
+
+      const result = await window.electron.renameFile(draggedItem.path, newPath);
+      if (result.success) {
+        successCount++;
+      } else {
+        failCount++;
+        console.error(`Failed to move ${draggedItem.path}:`, result.error);
+      }
     }
 
-    setDraggedItem(null);
+    // Refresh current folder
+    const entries = await window.electron.readDirectory(currentFolder);
+    setFiles(entries);
+
+    // Reload all expanded folders to keep them open
+    const newFolderContents = new Map<string, FileEntry[]>();
+    for (const folderPath of expandedFolders) {
+      const folderEntries = await window.electron.readDirectory(folderPath);
+      newFolderContents.set(folderPath, folderEntries);
+    }
+    setFolderContents(newFolderContents);
+
+    if (failCount > 0) {
+      alert(`${successCount}개 이동 완료, ${failCount}개 실패`);
+    }
+
+    setDraggedItems([]);
   };
 
   const handleDragEnd = () => {
@@ -695,7 +773,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       setDragOverTimer(null);
     }
 
-    setDraggedItem(null);
+    setDraggedItems([]);
     setDropTarget(null);
   };
 
@@ -757,62 +835,79 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     await onLoadFileInMultiSelect(filePath);
   };
 
-  // Handle file click with modifiers
+  // Handle file/folder click with modifiers
   const handleFileClick = async (entry: FileEntry, e: React.MouseEvent) => {
-    if (entry.type === 'directory') {
-      toggleFolder(entry.path);
-      return;
-    }
-
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const cmdKey = isMac ? e.metaKey : e.ctrlKey;
     const shiftKey = e.shiftKey;
 
-    if (shiftKey && (lastSelectedFile || selectedFiles.length > 0)) {
-      // Shift click: range selection
-      const flatList = getFlatFileList();
-      const fileList = flatList.filter(f => f.type === 'file');
-      const anchorFile = lastSelectedFile || selectedFiles[0];
-      const lastIndex = fileList.findIndex(f => f.path === anchorFile);
-      const currentIndex = fileList.findIndex(f => f.path === entry.path);
+    // Multi-selection mode: Shift or Cmd/Ctrl pressed
+    if (shiftKey || cmdKey) {
+      if (shiftKey && (lastSelectedFile || selectedFiles.length > 0)) {
+        // Shift click: range selection (includes both files and folders)
+        const flatList = getFlatFileList();
+        const anchorFile = lastSelectedFile || selectedFiles[0];
+        const lastIndex = flatList.findIndex(f => f.path === anchorFile);
+        const currentIndex = flatList.findIndex(f => f.path === entry.path);
 
-      if (lastIndex !== -1 && currentIndex !== -1) {
-        const start = Math.min(lastIndex, currentIndex);
-        const end = Math.max(lastIndex, currentIndex);
-        const rangeFiles = fileList.slice(start, end + 1).map(f => f.path);
+        if (lastIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(lastIndex, currentIndex);
+          const end = Math.max(lastIndex, currentIndex);
+          const rangeItems = flatList.slice(start, end + 1).map(f => f.path);
 
-        // Set range as new selection
-        onFileSelection(rangeFiles);
+          // Set range as new selection
+          onFileSelection(rangeItems);
 
-        // Load the clicked file
-        await loadFileContent(entry.path);
-        setLastSelectedFile(entry.path);
-      }
-    } else if (cmdKey) {
-      // Cmd/Ctrl click: toggle individual file
-      const isSelected = selectedFiles.includes(entry.path);
-
-      if (isSelected) {
-        // Deselect
-        const newSelection = selectedFiles.filter(p => p !== entry.path);
-        onFileSelection(newSelection.length > 0 ? newSelection : []);
-
-        // If deselecting current file, select the first remaining
-        if (currentFile === entry.path && newSelection.length > 0) {
-          await loadFileContent(newSelection[0]);
-          setLastSelectedFile(newSelection[0]);
+          // Load the clicked file if it's a file
+          if (entry.type === 'file') {
+            await loadFileContent(entry.path);
+          }
+          setLastSelectedFile(entry.path);
         }
-      } else {
-        // Add to selection
-        const newSelection = [...selectedFiles, entry.path];
-        onFileSelection(newSelection);
-        await loadFileContent(entry.path);
-        setLastSelectedFile(entry.path);
+      } else if (cmdKey) {
+        // Cmd/Ctrl click: toggle individual item (file or folder)
+        const isSelected = selectedFiles.includes(entry.path);
+
+        if (isSelected) {
+          // Deselect
+          const newSelection = selectedFiles.filter(p => p !== entry.path);
+          onFileSelection(newSelection.length > 0 ? newSelection : []);
+
+          // If deselecting current file, select the first remaining file
+          if (currentFile === entry.path && newSelection.length > 0) {
+            const firstFile = newSelection.find(path => {
+              const item = findEntryInAll(path);
+              return item?.type === 'file';
+            });
+            if (firstFile) {
+              await loadFileContent(firstFile);
+              setLastSelectedFile(firstFile);
+            }
+          }
+        } else {
+          // Add to selection
+          const newSelection = [...selectedFiles, entry.path];
+          onFileSelection(newSelection);
+
+          // Load the file if it's a file
+          if (entry.type === 'file') {
+            await loadFileContent(entry.path);
+          }
+          setLastSelectedFile(entry.path);
+        }
       }
     } else {
-      // Normal click: single selection
-      onSelectFile(entry.path);
-      setLastSelectedFile(entry.path);
+      // Normal click: single selection and folder toggle
+      if (entry.type === 'directory') {
+        // Toggle folder and select it (clear currentFile but keep editor content)
+        toggleFolder(entry.path);
+        onFolderSelection(entry.path);
+        setLastSelectedFile(entry.path);
+      } else {
+        // Select file
+        onSelectFile(entry.path);
+        setLastSelectedFile(entry.path);
+      }
     }
   };
 
@@ -891,6 +986,22 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     }
 
     return null;
+  };
+
+  const getDraggedItemsLabel = (): string => {
+    if (draggedItems.length === 0) return '';
+    if (draggedItems.length === 1) return draggedItems[0].name;
+
+    const fileCount = draggedItems.filter(item => item.type === 'file').length;
+    const folderCount = draggedItems.filter(item => item.type === 'directory').length;
+
+    if (fileCount > 0 && folderCount > 0) {
+      return `파일 ${fileCount}개, 폴더 ${folderCount}개`;
+    } else if (fileCount > 0) {
+      return `파일 ${fileCount}개`;
+    } else {
+      return `폴더 ${folderCount}개`;
+    }
   };
 
   const formatDate = (date: Date | undefined): string => {
@@ -992,11 +1103,11 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
               onClick={(e) => handleFileClick(entry, e)}
               onContextMenu={(e) => handleContextMenu(e, entry)}
               className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors text-left ${
-                currentFile === entry.path
+                currentFile === entry.path && entry.type === 'file'
                   ? 'bg-blue-100 text-blue-700'
                   : selectedFiles.includes(entry.path)
                   ? 'bg-blue-50 text-blue-600'
-                  : draggedItem?.path === entry.path
+                  : draggedItems.some(item => item.path === entry.path)
                   ? 'opacity-50'
                   : dropTarget === entry.path && entry.type === 'directory'
                   ? 'bg-green-100 border-2 border-green-400'
@@ -1363,17 +1474,20 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       )}
 
       {/* Drag and Drop Info Overlay */}
-      {draggedItem && dropTarget && (
+      {draggedItems.length > 0 && dropTarget && (
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-80 text-white px-6 py-4 rounded-lg shadow-2xl z-[300] pointer-events-none">
           <div className="flex items-center gap-3">
-            <div className="text-lg font-medium">{draggedItem.name}</div>
+            <div className="text-lg font-medium">{getDraggedItemsLabel()}</div>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
             <div className="text-lg font-medium">{getDropTargetName()}</div>
           </div>
           <div className="text-sm text-gray-300 mt-1 text-center">
-            {draggedItem.type === 'directory' ? '폴더' : '파일'}를 이동합니다
+            {draggedItems.length === 1
+              ? `${draggedItems[0].type === 'directory' ? '폴더' : '파일'}를 이동합니다`
+              : `${draggedItems.length}개 항목을 이동합니다`
+            }
           </div>
         </div>
       )}

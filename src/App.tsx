@@ -282,6 +282,13 @@ function App() {
     setSelectedFiles(selectedPaths);
   };
 
+  // Clear currentFile when folder is selected (keep editor content)
+  const handleFolderSelection = (folderPath: string) => {
+    setSelectedFiles([folderPath]);
+    setCurrentFile(null);
+    // Keep content unchanged so editor still shows previous file
+  };
+
   // Load file without resetting selection (for multi-select mode)
   const handleLoadFileInMultiSelect = async (filePath: string) => {
     if (!window.electron) return;
@@ -417,6 +424,7 @@ function App() {
         onSelectFile={handleSelectFile}
         onLoadFileInMultiSelect={handleLoadFileInMultiSelect}
         onFileSelection={handleFileSelection}
+        onFolderSelection={handleFolderSelection}
         onCreateFile={handleCreateFile}
         onDeleteFile={handleDeleteFile}
         refreshTrigger={refreshTrigger}
