@@ -1,3 +1,4 @@
+import React from 'react';
 import type { FileEntry, SortOrder } from '../../../types/electron';
 
 /**
@@ -139,14 +140,34 @@ export const getFolderStats = (
 };
 
 /**
- * 파일 크기를 읽기 쉬운 형식으로 포맷팅
+ * 파일 Tooltip 콘텐츠 생성
  */
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B';
+export const getFileTooltipContent = (entry: FileEntry): React.ReactNode => {
+  return React.createElement('div', { className: 'space-y-1' },
+    React.createElement('div', { className: 'font-medium' }, entry.name),
+    React.createElement('div', { className: 'text-xs text-gray-300' },
+      React.createElement('div', null, `수정: ${formatDate(entry.modified)}`),
+      React.createElement('div', null, `생성: ${formatDate(entry.created)}`)
+    )
+  );
+};
 
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+/**
+ * 폴더 Tooltip 콘텐츠 생성
+ */
+export const getFolderTooltipContent = (
+  entry: FileEntry,
+  folderContents: Map<string, FileEntry[]>
+): React.ReactNode => {
+  const stats = getFolderStats(entry.path, folderContents);
 
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return React.createElement('div', { className: 'space-y-1' },
+    React.createElement('div', { className: 'font-medium' }, entry.name),
+    stats
+      ? React.createElement('div', { className: 'text-xs text-gray-300' },
+          React.createElement('div', null, `폴더 ${stats.folders}개`),
+          React.createElement('div', null, `파일 ${stats.files}개`)
+        )
+      : React.createElement('div', { className: 'text-xs text-gray-300' }, '클릭하여 내용 확인')
+  );
 };

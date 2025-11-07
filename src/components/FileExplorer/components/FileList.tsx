@@ -1,11 +1,10 @@
 import React from 'react';
-import type { FileEntry, SortOrder } from '../../../types/electron';
+import type { FileEntry } from '../../../types/electron';
 import { FileItem } from './FileItem';
 
 interface FileListProps {
   entries: FileEntry[];
   depth?: number;
-  sortOrder: SortOrder;
 
   // Tree state
   expandedFolders: Set<string>;
@@ -46,7 +45,6 @@ interface FileListProps {
 export const FileList: React.FC<FileListProps> = ({
   entries,
   depth = 0,
-  sortOrder,
   expandedFolders,
   folderContents,
   selectedFiles,
@@ -67,38 +65,10 @@ export const FileList: React.FC<FileListProps> = ({
   onContextMenu,
   getTooltipContent,
 }) => {
-  // 파일 정렬
-  const sortFiles = (filesToSort: FileEntry[]): FileEntry[] => {
-    const sorted = [...filesToSort].sort((a, b) => {
-      // 폴더를 항상 위에 표시
-      if (a.type !== b.type) {
-        return a.type === 'directory' ? -1 : 1;
-      }
-
-      // 같은 타입(파일 또는 폴더)끼리 정렬
-      switch (sortOrder) {
-        case 'name-asc':
-          return a.name.localeCompare(b.name);
-        case 'name-desc':
-          return b.name.localeCompare(a.name);
-        case 'modified-desc':
-          return (b.modified?.getTime() || 0) - (a.modified?.getTime() || 0);
-        case 'modified-asc':
-          return (a.modified?.getTime() || 0) - (b.modified?.getTime() || 0);
-        case 'created-desc':
-          return (b.created?.getTime() || 0) - (a.created?.getTime() || 0);
-        case 'created-asc':
-          return (a.created?.getTime() || 0) - (b.created?.getTime() || 0);
-        default:
-          return 0;
-      }
-    });
-    return sorted;
-  };
-
+  // entries는 이미 부모에서 정렬된 상태로 전달됨
   return (
     <>
-      {sortFiles(entries).map((entry) => (
+      {entries.map((entry) => (
         <div key={entry.path}>
           <FileItem
             entry={entry}
@@ -131,7 +101,6 @@ export const FileList: React.FC<FileListProps> = ({
               <FileList
                 entries={folderContents.get(entry.path)!}
                 depth={depth + 1}
-                sortOrder={sortOrder}
                 expandedFolders={expandedFolders}
                 folderContents={folderContents}
                 selectedFiles={selectedFiles}

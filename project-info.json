@@ -1,0 +1,57 @@
+{
+  "name": "P-write-vacy",
+  "description": "프라이버시를 보호하는 텍스트 에디터 - 옆에서 보는 사람으로부터 글을 보호합니다",
+  "longDescription": "커서 주변만 선명하게 표시하고 나머지는 블러 처리하여 어깨 너머 훔쳐보기(shoulder surfing)로부터 작성 중인 글을 보호하는 프라이버시 중심 텍스트 에디터. Electron 데스크톱 앱으로 제공되며 파일 관리, 마크다운 지원, 커스터마이징 가능한 포커스 영역 등의 기능을 제공합니다.",
+  "techStack": [
+    "React 19",
+    "TypeScript",
+    "Electron",
+    "Vite",
+    "TailwindCSS",
+    "React Markdown",
+    "remark-gfm",
+    "electron-builder"
+  ],
+  "startDate": "2025-11-05",
+  "endDate": "",
+  "version": "0.1.0",
+  "category": "Tool",
+  "status": "개발중",
+  "size": "Medium",
+  "githubUrl": "https://github.com/Kuneosu/P-write-vacy",
+  "vercelUrl": "",
+  "npmUrl": "",
+  "demoUrl": "",
+  "features": [
+    "중심시야 최적화 - 커서 주변만 선명하게 표시하고 나머지는 블러 처리",
+    "실시간 포커스 추적 - 텍스트 입력 시 커서를 자동으로 따라가는 포커스",
+    "파일 탐색기 - 폴더/파일 트리 구조 탐색 및 관리",
+    "자동 저장 - 파일 수정 시 1초 후 자동 저장",
+    "마크다운 뷰어 - GitHub Flavored Markdown 지원",
+    "키보드 단축키 - 프라이버시 모드 토글, 포커스 크기 조절 등",
+    "커스터마이징 - 포커스 영역 크기/모양, 블러 색상/강도, 배경/텍스트 색상 설정",
+    "크로스 플랫폼 - macOS, Windows, Linux 데스크톱 앱 지원"
+  ],
+  "screenshots": [],
+  "highlights": [
+    "어깨 너머 훔쳐보기(shoulder surfing) 방지를 위한 독특한 UX",
+    "순수 브라우저 API(Selection API, ContentEditable) 활용",
+    "Electron으로 네이티브 데스크톱 앱 경험 제공",
+    "재귀적 폴더 탐색 및 드래그 앤 드롭 파일 이동 지원"
+  ],
+  "challenges": [
+    "contenteditable 요소에서 커서 위치 실시간 추적",
+    "프라이버시 모드 전환 시 자연스러운 블러 애니메이션 구현",
+    "파일 탐색기 키보드 단축키와 에디터 입력 이벤트 충돌 해결",
+    "Electron 앱 빌드 및 macOS 코드 서명 설정"
+  ],
+  "learnings": [
+    "React에서 contenteditable 요소 제어 및 Selection API 활용",
+    "Electron 데스크톱 앱 개발 및 IPC 통신",
+    "TypeScript strict 모드에서의 타입 안전성 확보",
+    "electron-builder를 통한 크로스 플랫폼 빌드 자동화"
+  ],
+  "stars": 0,
+  "downloads": 0,
+  "contributors": 1
+}
