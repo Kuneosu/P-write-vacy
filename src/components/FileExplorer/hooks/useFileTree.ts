@@ -25,6 +25,7 @@ interface UseFileTreeReturn {
   // Utilities
   getAllFolderPaths: (entries: FileEntry[]) => string[];
   getFlatFileList: () => FileEntry[];
+  sortFiles: (filesToSort: FileEntry[]) => FileEntry[];
 }
 
 /**
@@ -212,5 +213,6 @@ export const useFileTree = ({
     handleCollapseAll,
     getAllFolderPaths,
     getFlatFileList,
+    sortFiles,
   };
 };

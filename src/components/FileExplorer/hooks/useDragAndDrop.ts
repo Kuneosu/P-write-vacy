@@ -14,6 +14,7 @@ interface UseDragAndDropProps {
 interface UseDragAndDropReturn {
   draggedItems: FileEntry[];
   dropTarget: string | null;
+  setDropTarget: (target: string | null) => void;
   handleDragStart: (e: React.DragEvent, entry: FileEntry) => void;
   handleDragOver: (e: React.DragEvent, entry: FileEntry) => void;
   handleDragLeave: (e: React.DragEvent, entry: FileEntry) => void;
@@ -247,6 +248,7 @@ export const useDragAndDrop = ({
   return {
     draggedItems,
     dropTarget,
+    setDropTarget,
     handleDragStart,
     handleDragOver,
     handleDragLeave,
