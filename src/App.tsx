@@ -31,7 +31,7 @@ const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
 };
 
 function App() {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
   const toast = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [privacyActive, setPrivacyActive] = useState(true);

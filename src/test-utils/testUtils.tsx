@@ -3,8 +3,10 @@
  * 공통으로 사용되는 테스트 헬퍼 함수들
  */
 
-import React, { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import React from 'react';
+import type { ReactElement } from 'react';
+import { render } from '@testing-library/react';
+import type { RenderOptions } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { ToastProvider } from '../contexts/ToastContext';
 import type { FileEntry } from '../types/electron';
