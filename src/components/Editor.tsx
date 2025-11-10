@@ -93,10 +93,14 @@ export const Editor: React.FC<EditorProps> = ({
       <div
         ref={editorRef}
         contentEditable
+        role="textbox"
+        aria-label="텍스트 편집기"
+        aria-multiline="true"
+        aria-placeholder="여기에 사적인 글을 작성하세요... 텍스트를 입력하면 커서 주변만 선명하게 보입니다."
         onInput={handleInput}
         onClick={handleEditorInteraction}
         onFocus={handleEditorInteraction}
-        className="w-full h-full focus:outline-none text-lg leading-relaxed overflow-y-auto"
+        className="w-full h-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-lg leading-relaxed overflow-y-auto"
         style={{
           whiteSpace: 'pre-wrap',
           wordWrap: 'break-word',

@@ -208,8 +208,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <button
                           onClick={() => handleSaveEdit(preset.id)}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          aria-label="프리셋 이름 저장"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </button>
@@ -270,8 +271,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <button
                         onClick={handleCreatePreset}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        aria-label="프리셋 저장"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </button>
@@ -281,8 +283,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           setNewPresetName('');
                         }}
                         className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                        aria-label="취소"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
@@ -291,8 +294,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <button
                       onClick={() => setIsCreatingPreset(true)}
                       className="w-full px-3 py-2 text-sm text-blue-600 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      aria-label="현재 설정을 새 프리셋으로 저장"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                       현재 설정 저장
@@ -314,7 +318,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </span>
                 <button
                   onClick={onPrivacyToggle}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  role="switch"
+                  aria-checked={privacyActive}
+                  aria-label="프라이버시 모드 전환"
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     privacyActive ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
                 >
@@ -340,10 +347,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <label className="text-sm text-gray-700 block mb-2">
                   모양
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2" role="group" aria-label="포커스 영역 모양 선택">
                   <button
                     onClick={() => handleShapeChange('ellipse')}
-                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                    role="radio"
+                    aria-checked={focusSettings.focusShape === 'ellipse'}
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                       focusSettings.focusShape === 'ellipse'
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -353,7 +362,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </button>
                   <button
                     onClick={() => handleShapeChange('circle')}
-                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                    role="radio"
+                    aria-checked={focusSettings.focusShape === 'circle'}
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                       focusSettings.focusShape === 'circle'
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -380,6 +391,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     step="5"
                     value={focusSettings.radiusX}
                     onChange={(e) => handleRadiusXChange(Number(e.target.value))}
+                    aria-label="포커스 영역 크기"
+                    aria-valuemin={30}
+                    aria-valuemax={150}
+                    aria-valuenow={focusSettings.radiusX}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
                 </div>
@@ -400,6 +415,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       step="5"
                       value={focusSettings.radiusX}
                       onChange={(e) => handleRadiusXChange(Number(e.target.value))}
+                      aria-label="포커스 영역 가로 크기"
+                      aria-valuemin={30}
+                      aria-valuemax={150}
+                      aria-valuenow={focusSettings.radiusX}
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                   </div>
@@ -419,6 +438,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       step="5"
                       value={focusSettings.radiusY}
                       onChange={(e) => handleRadiusYChange(Number(e.target.value))}
+                      aria-label="포커스 영역 세로 크기"
+                      aria-valuemin={15}
+                      aria-valuemax={100}
+                      aria-valuenow={focusSettings.radiusY}
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                   </div>
@@ -440,6 +463,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   step="5"
                   value={focusSettings.blurSpread}
                   onChange={(e) => handleBlurSpreadChange(Number(e.target.value))}
+                  aria-label="테두리 번짐 정도"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={focusSettings.blurSpread}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
                 <p className="text-xs text-gray-500">
@@ -462,6 +489,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       type="color"
                       value={focusSettings.backgroundColor}
                       onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                      aria-label="배경 색상 선택"
                       className="w-10 h-8 rounded cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
@@ -480,6 +508,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       type="color"
                       value={focusSettings.textColor}
                       onChange={(e) => handleTextColorChange(e.target.value)}
+                      aria-label="텍스트 색상 선택"
                       className="w-10 h-8 rounded cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
@@ -504,6 +533,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       type="color"
                       value={focusSettings.blurColor}
                       onChange={(e) => handleColorChange(e.target.value)}
+                      aria-label="블러 색상 선택"
                       className="w-10 h-8 rounded cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
@@ -528,6 +558,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   step="0.05"
                   value={focusSettings.blurOpacity}
                   onChange={(e) => handleOpacityChange(Number(e.target.value))}
+                  aria-label="블러 투명도"
+                  aria-valuemin={0}
+                  aria-valuemax={1}
+                  aria-valuenow={focusSettings.blurOpacity}
+                  aria-valuetext={`${Math.round(focusSettings.blurOpacity * 100)}%`}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>
@@ -547,6 +582,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   step="1"
                   value={focusSettings.blurIntensity}
                   onChange={(e) => handleBlurIntensityChange(Number(e.target.value))}
+                  aria-label="블러 강도"
+                  aria-valuemin={0}
+                  aria-valuemax={20}
+                  aria-valuenow={focusSettings.blurIntensity}
+                  aria-valuetext={`${focusSettings.blurIntensity}px`}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
                 <p className="text-xs text-gray-500">
