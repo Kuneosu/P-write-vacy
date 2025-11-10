@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { FocusSettings, Preset } from '../types';
 import { ContextMenu } from './ContextMenu';
 
@@ -39,6 +39,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [editingName, setEditingName] = useState('');
   const [isCreatingPreset, setIsCreatingPreset] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
+
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus management: auto-focus close button when sidebar opens
+  useEffect(() => {
+    if (isOpen && closeButtonRef.current) {
+      // Small delay to ensure the sidebar animation has started
+      setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
+  // Focus trap: keep focus within sidebar when open
+  useEffect(() => {
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (!isOpen || e.key !== 'Tab' || !sidebarRef.current) return;
+
+      const focusableElements = sidebarRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey && document.activeElement === firstElement) {
+        // Shift+Tab on first element -> focus last
+        e.preventDefault();
+        lastElement?.focus();
+      } else if (!e.shiftKey && document.activeElement === lastElement) {
+        // Tab on last element -> focus first
+        e.preventDefault();
+        firstElement?.focus();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleTabKey);
+      return () => document.removeEventListener('keydown', handleTabKey);
+    }
+  }, [isOpen]);
+
+  // Escape key handler to close sidebar
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // If editing preset name or creating preset, cancel that first
+        if (editingPresetId) {
+          setEditingPresetId(null);
+          e.stopPropagation();
+        } else if (isCreatingPreset) {
+          setIsCreatingPreset(false);
+          setNewPresetName('');
+          e.stopPropagation();
+        } else if (isOpen) {
+          // Otherwise close the sidebar
+          onClose();
+        }
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [isOpen, editingPresetId, isCreatingPreset, onClose]);
 
   const handleRadiusXChange = (value: number) => {
     if (focusSettings.focusShape === 'circle') {
@@ -143,16 +209,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sidebar */}
       <div
+        ref={sidebarRef}
         className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{ zIndex: 150 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="설정 패널"
       >
         <div className="h-full flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800">설정</h2>
             <button
+              ref={closeButtonRef}
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
