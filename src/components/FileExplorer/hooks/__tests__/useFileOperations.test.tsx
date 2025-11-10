@@ -9,6 +9,7 @@ import { I18nextProvider } from 'react-i18next';
 import { useFileOperations } from '../useFileOperations';
 import { resetElectronMock, mockElectronAPI } from '../../../../../__mocks__/electron';
 import type { FileEntry } from '../../../../types/electron';
+import { renderWithProviders } from '../../../../test-utils/testUtils';
 import i18n from '../../../../i18n/config';
 
 // ToastContext mock
@@ -34,7 +35,7 @@ const renderHookWithWrapper = <TProps, TResult>(
 };
 
 // window.confirm mock
-(global as any).confirm = jest.fn(() => true);
+global.confirm = jest.fn(() => true);
 
 // console.error mock (테스트 중 에러 로그 숨기기)
 const originalConsoleError = console.error;
@@ -283,7 +284,7 @@ describe('useFileOperations', () => {
     };
 
     it('파일을 삭제하면 confirm 후 deleteFile이 호출된다', async () => {
-      (global as any).confirm = jest.fn(() => true);
+      global.confirm = jest.fn(() => true);
       mockElectronAPI.deleteFile.mockResolvedValueOnce({ success: true });
 
       const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
@@ -292,14 +293,14 @@ describe('useFileOperations', () => {
         await result.current.handleDelete(testFile);
       });
 
-      expect((global as any).confirm).toHaveBeenCalledWith('Delete "test-file.md" file?');
+      expect(global.confirm).toHaveBeenCalledWith('Delete "test-file.md" file?');
       expect(mockElectronAPI.deleteFile).toHaveBeenCalledWith('/test-folder/test-file.md');
       expect(mockOnDeleteFile).toHaveBeenCalledWith('/test-folder/test-file.md');
       expect(mockOnRefresh).toHaveBeenCalled();
     });
 
     it('폴더를 삭제하면 confirm 후 deleteFolder가 호출된다', async () => {
-      (global as any).confirm = jest.fn(() => true);
+      global.confirm = jest.fn(() => true);
       mockElectronAPI.deleteFolder.mockResolvedValueOnce({ success: true });
 
       const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
@@ -308,7 +309,7 @@ describe('useFileOperations', () => {
         await result.current.handleDelete(testFolder);
       });
 
-      expect((global as any).confirm).toHaveBeenCalledWith(
+      expect(global.confirm).toHaveBeenCalledWith(
         'Delete "test-folder" folder and all its contents?'
       );
       expect(mockElectronAPI.deleteFolder).toHaveBeenCalledWith('/test-folder/test-folder');
@@ -316,7 +317,7 @@ describe('useFileOperations', () => {
     });
 
     it('confirm을 취소하면 삭제가 실행되지 않는다', async () => {
-      (global as any).confirm = jest.fn(() => false);
+      global.confirm = jest.fn(() => false);
 
       const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
@@ -329,7 +330,7 @@ describe('useFileOperations', () => {
     });
 
     it('삭제 실패 시 에러 토스트가 표시된다', async () => {
-      (global as any).confirm = jest.fn(() => true);
+      global.confirm = jest.fn(() => true);
       mockElectronAPI.deleteFile.mockResolvedValueOnce({
         success: false,
         error: 'File not found',
@@ -346,7 +347,7 @@ describe('useFileOperations', () => {
     });
 
     it('여러 파일을 선택하여 삭제할 수 있다', async () => {
-      (global as any).confirm = jest.fn(() => true);
+      global.confirm = jest.fn(() => true);
       mockElectronAPI.deleteFile.mockResolvedValue({ success: true });
       mockElectronAPI.deleteFolder.mockResolvedValue({ success: true });
 
@@ -383,13 +384,13 @@ describe('useFileOperations', () => {
         await result.current.handleMultiDelete();
       });
 
-      expect((global as any).confirm).toHaveBeenCalledWith('Delete 2 selected items?');
+      expect(global.confirm).toHaveBeenCalledWith('Delete 2 selected items?');
       expect(mockElectronAPI.deleteFile).toHaveBeenCalledTimes(2);
       expect(mockOnRefresh).toHaveBeenCalled();
     });
 
     it('다중 삭제 시 일부 실패하면 경고 토스트가 표시된다', async () => {
-      (global as any).confirm = jest.fn(() => true);
+      global.confirm = jest.fn(() => true);
       mockElectronAPI.deleteFile
         .mockResolvedValueOnce({ success: true })
         .mockResolvedValueOnce({ success: false, error: 'Permission denied' });
@@ -428,7 +429,7 @@ describe('useFileOperations', () => {
         await result.current.handleMultiDelete();
       });
 
-      expect((global as any).confirm).not.toHaveBeenCalled();
+      expect(global.confirm).not.toHaveBeenCalled();
       expect(mockElectronAPI.deleteFile).not.toHaveBeenCalled();
     });
   });

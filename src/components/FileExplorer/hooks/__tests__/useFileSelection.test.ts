@@ -3,7 +3,7 @@
  * 단일 선택, 다중 선택 (Ctrl, Shift) 기능 테스트
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useFileSelection } from '../useFileSelection';
 import type { FileEntry } from '../../../../types/electron';
 

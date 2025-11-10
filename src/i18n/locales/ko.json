@@ -212,5 +212,46 @@
     "movingFile": "파일을 이동합니다",
     "movingFolder": "폴더를 이동합니다",
     "movingMulti": "{{count}}개 항목을 이동합니다"
+  },
+  "onboarding": {
+    "skip": "건너뛰기",
+    "next": "다음",
+    "prev": "이전",
+    "finish": "시작하기",
+    "welcome": {
+      "title": "P-write-vacy에 오신 것을 환영합니다",
+      "subtitle": "프라이버시를 지키는 메모 앱",
+      "description": "P-write-vacy는 어깨 너머 훔쳐보기를 방지하는\n스마트한 에디터입니다.\n\n커서 주변의 텍스트만 선명하게 표시되어\n개인정보를 안전하게 보호합니다."
+    },
+    "privacy": {
+      "title": "프라이버시 모드",
+      "subtitle": "커서 주변만 선명하게",
+      "description": "프라이버시 모드를 켜면 커서 주변의 포커스 영역만 선명하게 표시되고 나머지는 블러 처리됩니다.",
+      "features": {
+        "focus": "포커스 영역 크기와 모양을 자유롭게 조절",
+        "blur": "블러 강도와 색상을 커스터마이징",
+        "toggle": "Ctrl+H로 빠르게 켜고 끄기"
+      }
+    },
+    "files": {
+      "title": "파일 관리",
+      "subtitle": "폴더 단위로 메모 관리",
+      "description": "로컬 폴더를 선택하여 메모를 체계적으로 관리하세요. 파일 탐색기에서 파일 생성, 이름 변경, 삭제, 드래그 앤 드롭이 가능합니다.",
+      "features": {
+        "explorer": "직관적인 파일 탐색기 (Ctrl+S)",
+        "markdown": "마크다운 파일 미리보기 지원",
+        "organize": "폴더와 파일을 드래그로 정리"
+      }
+    },
+    "shortcuts": {
+      "title": "키보드 단축키",
+      "subtitle": "더 빠른 작업을 위한 단축키",
+      "list": {
+        "privacy": "프라이버시 모드 토글",
+        "fileExplorer": "파일 탐색기 열기/닫기",
+        "settings": "설정 패널 열기/닫기",
+        "escape": "패널 닫기"
+      }
+    }
   }
 }

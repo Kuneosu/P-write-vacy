@@ -218,5 +218,46 @@
     "movingFile": "Moving file",
     "movingFolder": "Moving folder",
     "movingMulti": "Moving {{count}} items"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "prev": "Previous",
+    "finish": "Get Started",
+    "welcome": {
+      "title": "Welcome to P-write-vacy",
+      "subtitle": "Privacy-First Note Taking",
+      "description": "P-write-vacy is a smart editor\nthat prevents shoulder surfing.\n\nOnly the text around your cursor stays visible,\nkeeping your private notes safe."
+    },
+    "privacy": {
+      "title": "Privacy Mode",
+      "subtitle": "Focus on what matters",
+      "description": "When privacy mode is on, only the area around your cursor remains clear while the rest is blurred.",
+      "features": {
+        "focus": "Customize focus area size and shape",
+        "blur": "Adjust blur intensity and color",
+        "toggle": "Toggle quickly with Ctrl+H"
+      }
+    },
+    "files": {
+      "title": "File Management",
+      "subtitle": "Organize notes by folder",
+      "description": "Select a local folder to organize your notes systematically. Create, rename, delete, and drag & drop files in the file explorer.",
+      "features": {
+        "explorer": "Intuitive file explorer (Ctrl+S)",
+        "markdown": "Markdown preview support",
+        "organize": "Drag files and folders to organize"
+      }
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts",
+      "subtitle": "Work faster with shortcuts",
+      "list": {
+        "privacy": "Toggle privacy mode",
+        "fileExplorer": "Open/close file explorer",
+        "settings": "Open/close settings",
+        "escape": "Close panels"
+      }
+    }
   }
 }

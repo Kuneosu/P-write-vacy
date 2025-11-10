@@ -7,6 +7,7 @@ import { FileExplorer } from "./components/FileExplorer";
 import { MarkdownViewer } from "./components/MarkdownViewer";
 import { Tooltip } from "./components/Tooltip";
 import { SaveStatus } from "./components/SaveStatus";
+import { Onboarding } from "./components/Onboarding";
 import type { SaveStatusType } from "./components/SaveStatus";
 import { useToast } from "./contexts/ToastContext";
 import type { FocusSettings, Preset } from "./types";
@@ -16,6 +17,7 @@ const STORAGE_KEYS = {
   PRIVACY_ACTIVE: "p-write-vacy-privacy",
   FOCUS_SETTINGS: "p-write-vacy-focus-settings",
   PRESETS: "p-write-vacy-presets",
+  ONBOARDING_COMPLETED: "p-write-vacy-onboarding-completed",
 };
 
 const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
@@ -59,6 +61,9 @@ function App() {
   const [showSaveStatus, setShowSaveStatus] = useState(false);
   const [savedFileName, setSavedFileName] = useState<string | undefined>();
 
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
   // Check if current file is markdown
   const isMarkdownFile = currentFile?.toLowerCase().match(/\.(md|markdown)$/) !== null;
 
@@ -81,6 +86,7 @@ function App() {
     const savedPrivacy = localStorage.getItem(STORAGE_KEYS.PRIVACY_ACTIVE);
     const savedSettings = localStorage.getItem(STORAGE_KEYS.FOCUS_SETTINGS);
     const savedPresets = localStorage.getItem(STORAGE_KEYS.PRESETS);
+    const onboardingCompleted = localStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETED);
 
     if (savedPrivacy !== null) {
       setPrivacyActive(savedPrivacy === "true");
@@ -102,6 +108,11 @@ function App() {
       } catch (e) {
         console.error("Failed to parse presets:", e);
       }
+    }
+
+    // Show onboarding if not completed
+    if (!onboardingCompleted) {
+      setShowOnboarding(true);
     }
   }, []);
 
@@ -254,6 +265,12 @@ function App() {
 
   const handleDeletePreset = (id: string) => {
     setPresets(presets.filter((p) => p.id !== id));
+  };
+
+  // Onboarding handlers
+  const handleOnboardingComplete = () => {
+    localStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, 'true');
+    setShowOnboarding(false);
   };
 
   // File Explorer handlers
@@ -417,6 +434,11 @@ function App() {
   }, [content, currentFile, hasUnsavedChanges]);
 
   // Don't show unsaved status - only show saving/saved/error states
+
+  // Show onboarding on first launch
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <div
