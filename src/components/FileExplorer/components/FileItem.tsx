@@ -38,8 +38,9 @@ interface FileItemProps {
 /**
  * 단일 파일/폴더 항목 렌더링 컴포넌트
  * Rename 모드와 Normal 모드 지원
+ * React.memo로 최적화하여 불필요한 re-render 방지
  */
-export const FileItem: React.FC<FileItemProps> = ({
+const FileItemComponent: React.FC<FileItemProps> = ({
   entry,
   depth,
   isRenaming,
@@ -141,3 +142,6 @@ export const FileItem: React.FC<FileItemProps> = ({
     </Tooltip>
   );
 };
+
+// Export memoized version for performance optimization
+export const FileItem = React.memo(FileItemComponent);

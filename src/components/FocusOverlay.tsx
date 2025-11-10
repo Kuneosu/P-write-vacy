@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { CaretPosition, FocusSettings } from '../types';
 
 interface FocusOverlayProps {
@@ -15,7 +15,9 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
   hasInteracted = true
 }) => {
   const [opacity, setOpacity] = useState(0);
+  const { radiusX, radiusY, blurColor, blurOpacity, blurSpread, blurIntensity, focusShape } = settings;
 
+  // All hooks must be called before any conditional returns
   useEffect(() => {
     if (isActive) {
       // 활성화 시 자연스럽게 나타남
@@ -27,49 +29,32 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
     }
   }, [isActive]);
 
-  if (!isActive) return null;
+  // Memoize hex to rgba conversion
+  const hexToRgba = useMemo(() => {
+    return (hex: string, opacity: number) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    };
+  }, []);
 
-  // 상호작용 전: 전체 블러
-  if (!hasInteracted) {
-    const blurColorRgba = `rgba(${parseInt(settings.blurColor.slice(1, 3), 16)}, ${parseInt(settings.blurColor.slice(3, 5), 16)}, ${parseInt(settings.blurColor.slice(5, 7), 16)}, ${settings.blurOpacity})`;
+  // Memoize blur color for non-interacted state
+  const fullBlurColorRgba = useMemo(
+    () => hexToRgba(settings.blurColor, settings.blurOpacity),
+    [settings.blurColor, settings.blurOpacity, hexToRgba]
+  );
 
-    return (
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          pointerEvents: 'none',
-          zIndex: 10,
-          backdropFilter: `blur(${settings.blurIntensity}px)`,
-          WebkitBackdropFilter: `blur(${settings.blurIntensity}px)`,
-          background: blurColorRgba,
-          opacity: opacity,
-          transition: 'opacity 0.4s ease-out',
-        }}
-        className="focus-overlay"
-      />
-    );
-  }
+  // Memoize blur color for interacted state
+  const blurColorRgba = useMemo(
+    () => hexToRgba(blurColor, blurOpacity),
+    [blurColor, blurOpacity, hexToRgba]
+  );
 
-  const { radiusX, radiusY, blurColor, blurOpacity, blurSpread, blurIntensity, focusShape } = settings;
+  // Memoize mask styles based on settings and caret position
+  const maskStyles = useMemo(() => {
+    const spreadEnd = 100 + blurSpread;
 
-  // Convert hex color to rgba
-  const hexToRgba = (hex: string, opacity: number) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-  };
-
-  const blurColorRgba = hexToRgba(blurColor, blurOpacity);
-
-  // 타원형과 원형은 mask 방식 사용
-  const spreadEnd = 100 + blurSpread;
-
-  const getMask = () => {
     if (focusShape === 'ellipse') {
       return {
         mask: `radial-gradient(
@@ -103,9 +88,33 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = React.memo(({
         )`
       };
     }
-  };
+  }, [radiusX, radiusY, blurSpread, focusShape, caretPosition.x, caretPosition.y]);
 
-  const maskStyles = getMask();
+  // Conditional returns after all hooks
+  if (!isActive) return null;
+
+  // 상호작용 전: 전체 블러
+  if (!hasInteracted) {
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 10,
+          backdropFilter: `blur(${settings.blurIntensity}px)`,
+          WebkitBackdropFilter: `blur(${settings.blurIntensity}px)`,
+          background: fullBlurColorRgba,
+          opacity: opacity,
+          transition: 'opacity 0.4s ease-out',
+        }}
+        className="focus-overlay"
+      />
+    );
+  }
 
   const blurLayerStyle: React.CSSProperties = {
     position: 'absolute',

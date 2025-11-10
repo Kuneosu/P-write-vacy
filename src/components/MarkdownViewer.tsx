@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FocusOverlay } from './FocusOverlay';
 import type { FocusSettings, CaretPosition } from '../types';
@@ -22,6 +23,27 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState<CaretPosition>({ x: 50, y: 50 });
   const [hasInteracted, setHasInteracted] = useState(false);
+
+  // Custom components for react-markdown with lazy loading images
+  const markdownComponents = useMemo<Components>(() => ({
+    img: ({ node, ...props }) => (
+      <img
+        {...props}
+        loading="lazy"
+        style={{
+          maxWidth: '100%',
+          height: 'auto',
+          borderRadius: '4px',
+        }}
+        onError={(e) => {
+          // Handle broken images gracefully
+          const target = e.target as HTMLImageElement;
+          target.alt = `[Image failed to load: ${props.alt || props.src}]`;
+          target.style.display = 'none';
+        }}
+      />
+    ),
+  }), []);
 
   // Reset interaction state when file changes (not when content changes)
   useEffect(() => {
@@ -69,7 +91,10 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         }}
       >
         <div className="max-w-4xl mx-auto prose prose-lg dark:prose-invert">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={markdownComponents}
+          >
             {content}
           </ReactMarkdown>
         </div>

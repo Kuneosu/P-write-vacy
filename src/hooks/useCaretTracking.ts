@@ -1,5 +1,6 @@
-import { useState, useEffect, type RefObject } from 'react';
+import { useState, useEffect, useRef, type RefObject } from 'react';
 import type { CaretPosition } from '../types';
+import { throttle } from '../utils/throttle';
 
 export const useCaretTracking = (editorRef: RefObject<HTMLDivElement | null>) => {
   const [caretPosition, setCaretPosition] = useState<CaretPosition>({ x: 50, y: 50 });
@@ -64,26 +65,31 @@ export const useCaretTracking = (editorRef: RefObject<HTMLDivElement | null>) =>
     }
   };
 
+  // Create throttled version of updateCaretPosition (~60fps = 16ms)
+  const throttledUpdateRef = useRef(throttle(updateCaretPosition, 16));
+
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    // Add event listeners
-    editor.addEventListener('input', updateCaretPosition);
-    editor.addEventListener('click', updateCaretPosition);
-    editor.addEventListener('keyup', updateCaretPosition);
-    editor.addEventListener('focus', updateCaretPosition);
-    editor.addEventListener('scroll', updateCaretPosition);
+    const throttledUpdate = throttledUpdateRef.current;
 
-    // Initial position
+    // Add event listeners with throttled update
+    editor.addEventListener('input', throttledUpdate);
+    editor.addEventListener('click', throttledUpdate);
+    editor.addEventListener('keyup', throttledUpdate);
+    editor.addEventListener('focus', throttledUpdate);
+    editor.addEventListener('scroll', throttledUpdate);
+
+    // Initial position (not throttled for immediate feedback)
     setTimeout(updateCaretPosition, 100);
 
     return () => {
-      editor.removeEventListener('input', updateCaretPosition);
-      editor.removeEventListener('click', updateCaretPosition);
-      editor.removeEventListener('keyup', updateCaretPosition);
-      editor.removeEventListener('focus', updateCaretPosition);
-      editor.removeEventListener('scroll', updateCaretPosition);
+      editor.removeEventListener('input', throttledUpdate);
+      editor.removeEventListener('click', throttledUpdate);
+      editor.removeEventListener('keyup', throttledUpdate);
+      editor.removeEventListener('focus', throttledUpdate);
+      editor.removeEventListener('scroll', throttledUpdate);
     };
   }, [editorRef]);
 

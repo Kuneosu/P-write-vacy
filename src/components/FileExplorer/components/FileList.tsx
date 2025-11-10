@@ -41,8 +41,9 @@ interface FileListProps {
 /**
  * 파일 트리를 재귀적으로 렌더링하는 컴포넌트
  * FileItem을 사용하여 각 항목을 렌더링하고, 폴더인 경우 하위 항목을 재귀 렌더링
+ * React.memo로 최적화하여 1000+ 파일에서도 성능 유지
  */
-export const FileList: React.FC<FileListProps> = ({
+const FileListComponent: React.FC<FileListProps> = ({
   entries,
   depth = 0,
   expandedFolders,
@@ -128,3 +129,6 @@ export const FileList: React.FC<FileListProps> = ({
     </>
   );
 };
+
+// Export memoized version for performance optimization (1000+ files)
+export const FileList = React.memo(FileListComponent);
