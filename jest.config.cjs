@@ -34,6 +34,7 @@ module.exports = {
         jsx: 'react-jsx',
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
+        resolveJsonModule: true,
       }
     }]
   },

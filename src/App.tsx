@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Editor } from "./components/Editor";
 import { Sidebar } from "./components/Sidebar";
 import { SettingsButton } from "./components/SettingsButton";
@@ -30,6 +31,7 @@ const DEFAULT_FOCUS_SETTINGS: FocusSettings = {
 };
 
 function App() {
+  const { i18n, t } = useTranslation();
   const toast = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [privacyActive, setPrivacyActive] = useState(true);
@@ -225,7 +227,7 @@ function App() {
   // Preset handlers
   const handleSavePreset = (name: string) => {
     if (presets.length >= 3) {
-      toast.warning("최대 3개의 프리셋만 저장할 수 있습니다.");
+      toast.warning(t('presets.maxPresetsWarning'));
       return;
     }
 
@@ -297,7 +299,7 @@ function App() {
       setHasUnsavedChanges(false);
     } else {
       console.error("Failed to read file:", result.error);
-      toast.error("파일 읽기 실패: " + result.error);
+      toast.error(t('toast.fileReadError', { error: result.error }));
     }
   };
 
@@ -343,7 +345,7 @@ function App() {
       setHasUnsavedChanges(false);
     } else {
       console.error("Failed to read file:", result.error);
-      toast.error("파일 읽기 실패: " + result.error);
+      toast.error(t('toast.fileReadError', { error: result.error }));
     }
   };
 
@@ -357,9 +359,9 @@ function App() {
       setHasUnsavedChanges(false);
       // Trigger file list reload
       setRefreshTrigger((prev) => prev + 1);
-      toast.success("파일이 생성되었습니다");
+      toast.success(t('toast.fileCreateSuccess'));
     } else {
-      toast.error("파일 생성 실패: " + result.error);
+      toast.error(t('toast.fileCreateError', { error: result.error }));
     }
   };
 
@@ -439,7 +441,7 @@ function App() {
       />
 
       {/* 파일 탐색기 토글 버튼 */}
-      <Tooltip content={fileExplorerOpen ? "파일 탐색기 닫기" : "파일 탐색기 열기 (Ctrl+S)"}>
+      <Tooltip content={fileExplorerOpen ? t('fileExplorer.close') : t('fileExplorer.open')}>
         <button
           onClick={() => setFileExplorerOpen((prev) => !prev)}
           className="fixed p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
@@ -454,7 +456,7 @@ function App() {
               transition: "all 0.3s ease",
             } as React.CSSProperties
           }
-          aria-label="파일 탐색기"
+          aria-label={t('fileExplorer.toggle')}
         >
           <svg
             className="w-6 h-6 text-gray-700 transition-transform duration-300"
@@ -511,7 +513,7 @@ function App() {
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              <span className="text-gray-700 group-hover:text-gray-900 transition-colors">폴더 선택하기</span>
+              <span className="text-gray-700 group-hover:text-gray-900 transition-colors">{t('fileExplorer.selectFolder')}</span>
             </div>
           </button>
         </div>
@@ -537,8 +539,8 @@ function App() {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <p className="text-gray-500 text-lg">파일을 선택하세요</p>
-            <p className="text-gray-400 text-sm mt-2">왼쪽 파일 탐색기에서 파일을 선택하거나 새로 만드세요</p>
+            <p className="text-gray-500 text-lg">{t('fileExplorer.selectFile')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('fileExplorer.selectFileDescription')}</p>
           </div>
         </div>
       ) : isMarkdownViewMode ? (
@@ -562,7 +564,7 @@ function App() {
 
       {/* Privacy mode toggle button */}
       {currentFolder && (
-        <Tooltip content={privacyActive ? "프라이버시 모드 끄기 (Ctrl+H)" : "프라이버시 모드 켜기 (Ctrl+H)"}>
+        <Tooltip content={privacyActive ? t('privacy.off') : t('privacy.on')}>
           <button
             onClick={() => setPrivacyActive((prev) => !prev)}
             className="fixed p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
@@ -577,7 +579,7 @@ function App() {
                 transition: "all 0.3s ease",
               } as React.CSSProperties
             }
-            aria-label={privacyActive ? "프라이버시 모드 끄기" : "프라이버시 모드 켜기"}
+            aria-label={privacyActive ? t('privacy.off') : t('privacy.on')}
           >
             {privacyActive ? (
               <svg
@@ -620,7 +622,7 @@ function App() {
 
       {/* Markdown viewer toggle button */}
       {isMarkdownFile && currentFolder && (
-        <Tooltip content={isMarkdownViewMode ? "편집 모드로 전환" : "마크다운 미리보기"}>
+        <Tooltip content={isMarkdownViewMode ? t('markdown.editMode') : t('markdown.preview')}>
           <button
             onClick={() => setIsMarkdownViewMode((prev) => !prev)}
             className="fixed p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
@@ -635,7 +637,7 @@ function App() {
                 transition: "all 0.3s ease",
               } as React.CSSProperties
             }
-            aria-label={isMarkdownViewMode ? "편집 모드" : "마크다운 뷰어"}
+            aria-label={isMarkdownViewMode ? t('markdown.aria.editor') : t('markdown.aria.viewer')}
           >
             {isMarkdownViewMode ? (
               <svg

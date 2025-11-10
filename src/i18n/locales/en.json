@@ -1,0 +1,222 @@
+{
+  "settings": {
+    "title": "Settings",
+    "close": "Close",
+    "aria": {
+      "panel": "Settings panel",
+      "button": "Settings"
+    }
+  },
+  "privacy": {
+    "mode": "Privacy Mode",
+    "toggle": "Toggle privacy mode",
+    "on": "Turn on privacy mode (Ctrl+H)",
+    "off": "Turn off privacy mode (Ctrl+H)",
+    "description": "Keep text around cursor clear (Ctrl+H)"
+  },
+  "presets": {
+    "title": "Presets",
+    "name": "Preset name",
+    "save": "Save preset",
+    "cancel": "Cancel",
+    "create": "Save current settings as new preset",
+    "saveName": "Save preset name",
+    "saveCurrentSettings": "Save Current Settings",
+    "clickToApply": "Click a preset to apply settings. Right-click to edit or delete.",
+    "deleteConfirm": "Are you sure you want to delete this preset?",
+    "maxPresetsWarning": "You can save up to 3 presets maximum.",
+    "tooltip": {
+      "size": "Size: {{radiusX}}×{{radiusY}}px",
+      "blur": "Blur: {{blurIntensity}}px",
+      "opacity": "Opacity: {{opacity}}%",
+      "shape": "Shape: {{shape}}"
+    }
+  },
+  "focus": {
+    "title": "Focus Area",
+    "shape": {
+      "title": "Shape",
+      "ellipse": "Ellipse",
+      "circle": "Circle",
+      "aria": "Select focus area shape"
+    },
+    "size": {
+      "title": "Size",
+      "width": "Width",
+      "height": "Height",
+      "aria": {
+        "overall": "Focus area size",
+        "width": "Focus area width",
+        "height": "Focus area height"
+      }
+    },
+    "spread": {
+      "title": "Edge Spread",
+      "aria": "Edge spread amount",
+      "description": "Adjust how much the focus area edge spreads"
+    },
+    "blur": {
+      "intensity": "Blur Intensity",
+      "color": "Blur Color",
+      "opacity": "Opacity",
+      "aria": {
+        "intensity": "Blur intensity",
+        "color": "Select blur color",
+        "opacity": "Blur opacity"
+      },
+      "description": "Adjust the intensity of the blur effect"
+    }
+  },
+  "style": {
+    "editor": "Editor Style",
+    "blur": "Blur Area Style"
+  },
+  "colors": {
+    "background": "Background Color",
+    "text": "Text Color",
+    "aria": {
+      "background": "Select background color",
+      "text": "Select text color"
+    }
+  },
+  "editor": {
+    "placeholder": "Write your private thoughts here...\n\nText around your cursor will remain clear while the rest is blurred.",
+    "aria": {
+      "label": "Text editor"
+    }
+  },
+  "fileExplorer": {
+    "title": "Files",
+    "open": "Open file explorer (Ctrl+S)",
+    "close": "Close file explorer",
+    "toggle": "File explorer",
+    "selectFolder": "Select Folder",
+    "selectFile": "Select a file",
+    "selectFileDescription": "Choose a file from the explorer on the left or create a new one",
+    "newFile": "New file",
+    "newFolder": "New folder",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "sort": "Sort",
+    "fileNamePlaceholder": "File name (e.g., note.md)",
+    "folderNamePlaceholder": "Folder name",
+    "tooltip": {
+      "newFile": "Create new file",
+      "newFolder": "Create new folder",
+      "expand": "Expand all",
+      "collapse": "Collapse all",
+      "sort": "Change sort order",
+      "selectWorkingFolder": "Select working folder",
+      "clickToView": "Click to view contents"
+    },
+    "aria": {
+      "newFile": "New file",
+      "newFolder": "New folder",
+      "sort": "Sort"
+    },
+    "sortOrder": {
+      "nameAsc": "Name (A-Z)",
+      "nameDesc": "Name (Z-A)",
+      "modifiedDesc": "Modified (newest first)",
+      "modifiedAsc": "Modified (oldest first)",
+      "createdDesc": "Created (newest first)",
+      "createdAsc": "Created (oldest first)"
+    },
+    "dateFormat": {
+      "unknown": "Unknown",
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} min ago",
+      "minutesAgo_plural": "{{count}} mins ago",
+      "hoursAgo": "{{count}} hour ago",
+      "hoursAgo_plural": "{{count}} hours ago",
+      "daysAgo": "{{count}} day ago",
+      "daysAgo_plural": "{{count}} days ago",
+      "modified": "Modified",
+      "created": "Created"
+    },
+    "dragDrop": {
+      "files": "{{count}} file",
+      "files_plural": "{{count}} files",
+      "folders": "{{count}} folder",
+      "folders_plural": "{{count}} folders",
+      "filesAndFolders": "{{fileCount}} files, {{folderCount}} folders",
+      "root": "Root",
+      "folderStats": "{{folders}} folders",
+      "fileStats": "{{files}} files"
+    }
+  },
+  "markdown": {
+    "preview": "Markdown preview",
+    "editMode": "Switch to edit mode",
+    "aria": {
+      "viewer": "Markdown viewer",
+      "editor": "Edit mode"
+    }
+  },
+  "toast": {
+    "fileReadError": "Failed to read file: {{error}}",
+    "fileCreateSuccess": "File created successfully",
+    "fileCreateError": "Failed to create file: {{error}}"
+  },
+  "shortcuts": {
+    "title": "Shortcuts",
+    "privacy": "Toggle privacy"
+  },
+  "language": {
+    "title": "Language",
+    "korean": "한국어",
+    "english": "English"
+  },
+  "contextMenu": {
+    "copyPath": "Copy Path",
+    "revealInFinder": "Reveal in Finder",
+    "itemsSelected": "{{count}} item selected",
+    "itemsSelected_plural": "{{count}} items selected",
+    "duplicateAll": "Duplicate All",
+    "deleteAll": "Delete All",
+    "openWithDefault": "Open with Default App",
+    "duplicate": "Duplicate",
+    "rename": "Rename",
+    "delete": "Delete"
+  },
+  "fileInput": {
+    "create": "Create",
+    "cancel": "Cancel"
+  },
+  "saveStatus": {
+    "saving": "Saving",
+    "savingWithFile": "{{fileName}} Saving",
+    "saved": "Saved",
+    "savedWithFile": "{{fileName}} Saved",
+    "unsaved": "Unsaved",
+    "error": "Save failed",
+    "errorWithMessage": "{{message}}"
+  },
+  "fileOperations": {
+    "folderCreated": "Folder created successfully",
+    "folderCreateError": "Folder creation failed: {{error}}",
+    "deleteFileConfirm": "Delete \"{{fileName}}\" file?",
+    "deleteFolderConfirm": "Delete \"{{folderName}}\" folder and all its contents?",
+    "deleteMultiConfirm": "Delete {{count}} selected items?",
+    "deleted": "Deleted successfully",
+    "deleteError": "Delete failed: {{error}}",
+    "deletePartial": "{{successCount}} deleted, {{failCount}} failed",
+    "deletedMulti": "{{count}} items deleted",
+    "renamed": "Renamed successfully",
+    "renameError": "Rename failed: {{error}}",
+    "duplicated": "Duplicated successfully",
+    "duplicateError": "Duplicate failed: {{error}}",
+    "duplicatePartial": "{{successCount}} duplicated, {{failCount}} failed",
+    "duplicatedMulti": "{{count}} items duplicated",
+    "pastePartial": "{{successCount}} pasted, {{failCount}} failed",
+    "pastedMulti": "{{count}} items pasted",
+    "openError": "Open failed: {{error}}",
+    "revealError": "Reveal in Finder failed: {{error}}",
+    "cannotMoveToChild": "Cannot move to subfolder.",
+    "movePartial": "{{successCount}} moved, {{failCount}} failed",
+    "movedMulti": "{{count}} items moved",
+    "movingFile": "Moving file",
+    "movingFolder": "Moving folder",
+    "movingMulti": "Moving {{count}} items"
+  }
+}

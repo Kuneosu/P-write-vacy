@@ -1,0 +1,216 @@
+{
+  "settings": {
+    "title": "설정",
+    "close": "닫기",
+    "aria": {
+      "panel": "설정 패널",
+      "button": "설정"
+    }
+  },
+  "privacy": {
+    "mode": "프라이버시 모드",
+    "toggle": "프라이버시 모드 전환",
+    "on": "프라이버시 모드 켜기 (Ctrl+H)",
+    "off": "프라이버시 모드 끄기 (Ctrl+H)",
+    "description": "커서 주변만 선명하게 표시 (Ctrl+H)"
+  },
+  "presets": {
+    "title": "프리셋",
+    "name": "프리셋 이름",
+    "save": "프리셋 저장",
+    "cancel": "취소",
+    "create": "현재 설정을 새 프리셋으로 저장",
+    "saveName": "프리셋 이름 저장",
+    "saveCurrentSettings": "현재 설정 저장",
+    "clickToApply": "프리셋을 클릭하면 설정이 적용됩니다. 우클릭으로 수정하거나 삭제할 수 있습니다.",
+    "deleteConfirm": "이 프리셋을 삭제하시겠습니까?",
+    "maxPresetsWarning": "최대 3개의 프리셋만 저장할 수 있습니다.",
+    "tooltip": {
+      "size": "크기: {{radiusX}}×{{radiusY}}px",
+      "blur": "블러: {{blurIntensity}}px",
+      "opacity": "투명도: {{opacity}}%",
+      "shape": "모양: {{shape}}"
+    }
+  },
+  "focus": {
+    "title": "포커스 영역",
+    "shape": {
+      "title": "모양",
+      "ellipse": "타원형",
+      "circle": "원형",
+      "aria": "포커스 영역 모양 선택"
+    },
+    "size": {
+      "title": "크기",
+      "width": "가로 크기",
+      "height": "세로 크기",
+      "aria": {
+        "overall": "포커스 영역 크기",
+        "width": "포커스 영역 가로 크기",
+        "height": "포커스 영역 세로 크기"
+      }
+    },
+    "spread": {
+      "title": "테두리 번짐",
+      "aria": "테두리 번짐 정도",
+      "description": "포커스 영역 테두리의 번지는 정도를 조절합니다"
+    },
+    "blur": {
+      "intensity": "블러 강도",
+      "color": "블러 색상",
+      "opacity": "투명도",
+      "aria": {
+        "intensity": "블러 강도",
+        "color": "블러 색상 선택",
+        "opacity": "블러 투명도"
+      },
+      "description": "블러 효과의 강도를 조절합니다"
+    }
+  },
+  "style": {
+    "editor": "에디터 스타일",
+    "blur": "블러 영역 스타일"
+  },
+  "colors": {
+    "background": "배경 색상",
+    "text": "텍스트 색상",
+    "aria": {
+      "background": "배경 색상 선택",
+      "text": "텍스트 색상 선택"
+    }
+  },
+  "editor": {
+    "placeholder": "여기에 사적인 글을 작성하세요...\n\n텍스트를 입력하면 커서 주변만 선명하게 보입니다.",
+    "aria": {
+      "label": "텍스트 편집기"
+    }
+  },
+  "fileExplorer": {
+    "title": "파일",
+    "open": "파일 탐색기 열기 (Ctrl+S)",
+    "close": "파일 탐색기 닫기",
+    "toggle": "파일 탐색기",
+    "selectFolder": "폴더 선택하기",
+    "selectFile": "파일을 선택하세요",
+    "selectFileDescription": "왼쪽 파일 탐색기에서 파일을 선택하거나 새로 만드세요",
+    "newFile": "새 파일",
+    "newFolder": "새 폴더",
+    "expandAll": "모두 확장",
+    "collapseAll": "모두 축소",
+    "sort": "정렬",
+    "fileNamePlaceholder": "파일 이름 (예: note.md)",
+    "folderNamePlaceholder": "폴더 이름",
+    "tooltip": {
+      "newFile": "새 파일 만들기",
+      "newFolder": "새 폴더 만들기",
+      "expand": "모두 펼치기",
+      "collapse": "모두 접기",
+      "sort": "정렬 순서 변경",
+      "selectWorkingFolder": "작업 폴더 선택",
+      "clickToView": "클릭하여 내용 확인"
+    },
+    "aria": {
+      "newFile": "새 파일",
+      "newFolder": "새 폴더",
+      "sort": "정렬"
+    },
+    "sortOrder": {
+      "nameAsc": "파일 이름 (알파벳순)",
+      "nameDesc": "파일 이름 (알파벳 역순)",
+      "modifiedDesc": "업데이트 날짜 (최신순)",
+      "modifiedAsc": "업데이트 날짜 (오래된 순)",
+      "createdDesc": "생성일 (최신순)",
+      "createdAsc": "생성일 (오래된 순)"
+    },
+    "dateFormat": {
+      "unknown": "알 수 없음",
+      "justNow": "방금 전",
+      "minutesAgo": "{{count}}분 전",
+      "hoursAgo": "{{count}}시간 전",
+      "daysAgo": "{{count}}일 전",
+      "modified": "수정",
+      "created": "생성"
+    },
+    "dragDrop": {
+      "files": "파일 {{count}}개",
+      "folders": "폴더 {{count}}개",
+      "filesAndFolders": "파일 {{fileCount}}개, 폴더 {{folderCount}}개",
+      "root": "루트",
+      "folderStats": "폴더 {{folders}}개",
+      "fileStats": "파일 {{files}}개"
+    }
+  },
+  "markdown": {
+    "preview": "마크다운 미리보기",
+    "editMode": "편집 모드로 전환",
+    "aria": {
+      "viewer": "마크다운 뷰어",
+      "editor": "편집 모드"
+    }
+  },
+  "toast": {
+    "fileReadError": "파일 읽기 실패: {{error}}",
+    "fileCreateSuccess": "파일이 생성되었습니다",
+    "fileCreateError": "파일 생성 실패: {{error}}"
+  },
+  "shortcuts": {
+    "title": "단축키",
+    "privacy": "프라이버시 토글"
+  },
+  "language": {
+    "title": "언어",
+    "korean": "한국어",
+    "english": "English"
+  },
+  "contextMenu": {
+    "copyPath": "경로 복사",
+    "revealInFinder": "Finder에서 보기",
+    "itemsSelected": "{{count}}개 항목 선택됨",
+    "duplicateAll": "모두 복제",
+    "deleteAll": "모두 삭제",
+    "openWithDefault": "기본 앱에서 열기",
+    "duplicate": "복제",
+    "rename": "이름 변경",
+    "delete": "삭제"
+  },
+  "fileInput": {
+    "create": "생성",
+    "cancel": "취소"
+  },
+  "saveStatus": {
+    "saving": "저장 중",
+    "savingWithFile": "{{fileName}} 저장 중",
+    "saved": "저장됨",
+    "savedWithFile": "{{fileName}} 저장됨",
+    "unsaved": "저장되지 않음",
+    "error": "저장 실패",
+    "errorWithMessage": "{{message}}"
+  },
+  "fileOperations": {
+    "folderCreated": "폴더가 생성되었습니다",
+    "folderCreateError": "폴더 생성 실패: {{error}}",
+    "deleteFileConfirm": "\"{{fileName}}\" 파일을 삭제하시겠습니까?",
+    "deleteFolderConfirm": "\"{{folderName}}\" 폴더와 내부의 모든 파일을 삭제하시겠습니까?",
+    "deleteMultiConfirm": "선택한 {{count}}개의 항목을 삭제하시겠습니까?",
+    "deleted": "삭제되었습니다",
+    "deleteError": "삭제 실패: {{error}}",
+    "deletePartial": "{{successCount}}개 삭제 완료, {{failCount}}개 실패",
+    "deletedMulti": "{{count}}개 항목이 삭제되었습니다",
+    "renamed": "이름이 변경되었습니다",
+    "renameError": "이름 변경 실패: {{error}}",
+    "duplicated": "복제되었습니다",
+    "duplicateError": "복제 실패: {{error}}",
+    "duplicatePartial": "{{successCount}}개 복제 완료, {{failCount}}개 실패",
+    "duplicatedMulti": "{{count}}개 항목이 복제되었습니다",
+    "pastePartial": "{{successCount}}개 붙여넣기 완료, {{failCount}}개 실패",
+    "pastedMulti": "{{count}}개 항목이 붙여넣기 되었습니다",
+    "openError": "열기 실패: {{error}}",
+    "revealError": "Finder에서 보기 실패: {{error}}",
+    "cannotMoveToChild": "하위 폴더로 이동할 수 없습니다.",
+    "movePartial": "{{successCount}}개 이동 완료, {{failCount}}개 실패",
+    "movedMulti": "{{count}}개 항목이 이동되었습니다",
+    "movingFile": "파일을 이동합니다",
+    "movingFolder": "폴더를 이동합니다",
+    "movingMulti": "{{count}}개 항목을 이동합니다"
+  }
+}

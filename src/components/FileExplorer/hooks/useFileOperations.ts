@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FileEntry } from '../../../types/electron';
 import { useToast } from '../../../contexts/ToastContext';
 
@@ -62,6 +63,7 @@ export const useFileOperations = ({
   onRefresh,
   findEntryInAll,
 }: UseFileOperationsProps): UseFileOperationsReturn => {
+  const { t } = useTranslation();
   const toast = useToast();
 
   // File creation state
@@ -112,9 +114,9 @@ export const useFileOperations = ({
       setNewFolderName('');
       setIsCreatingFolder(false);
       await onRefresh();
-      toast.success('폴더가 생성되었습니다');
+      toast.success(t('fileOperations.folderCreated'));
     } else {
-      toast.error('폴더 생성 실패: ' + result.error);
+      toast.error(t('fileOperations.folderCreateError', { error: result.error }));
     }
   };
 
@@ -128,8 +130,8 @@ export const useFileOperations = ({
     if (!window.electron || !currentFolder) return;
 
     const confirmMessage = entry.type === 'directory'
-      ? `"${entry.name}" 폴더와 내부의 모든 파일을 삭제하시겠습니까?`
-      : `"${entry.name}" 파일을 삭제하시겠습니까?`;
+      ? t('fileOperations.deleteFolderConfirm', { folderName: entry.name })
+      : t('fileOperations.deleteFileConfirm', { fileName: entry.name });
 
     if (!confirm(confirmMessage)) return;
 
@@ -144,9 +146,9 @@ export const useFileOperations = ({
       }
 
       await onRefresh();
-      toast.success('삭제되었습니다');
+      toast.success(t('fileOperations.deleted'));
     } else {
-      toast.error('삭제 실패: ' + result.error);
+      toast.error(t('fileOperations.deleteError', { error: result.error }));
     }
   };
 
@@ -154,7 +156,7 @@ export const useFileOperations = ({
   const handleMultiDelete = async () => {
     if (!window.electron || !currentFolder || selectedFiles.length === 0) return;
 
-    const confirmMessage = `선택한 ${selectedFiles.length}개의 항목을 삭제하시겠습니까?`;
+    const confirmMessage = t('fileOperations.deleteMultiConfirm', { count: selectedFiles.length });
     if (!confirm(confirmMessage)) return;
 
     let successCount = 0;
@@ -182,9 +184,9 @@ export const useFileOperations = ({
     await onRefresh();
 
     if (failCount > 0) {
-      toast.warning(`${successCount}개 삭제 완료, ${failCount}개 실패`);
+      toast.warning(t('fileOperations.deletePartial', { successCount, failCount }));
     } else {
-      toast.success(`${successCount}개 항목이 삭제되었습니다`);
+      toast.success(t('fileOperations.deletedMulti', { count: successCount }));
     }
   };
 
@@ -206,9 +208,9 @@ export const useFileOperations = ({
     const result = await window.electron.renameFile(entry.path, newPath);
     if (result.success) {
       await onRefresh();
-      toast.success('이름이 변경되었습니다');
+      toast.success(t('fileOperations.renamed'));
     } else {
-      toast.error('이름 변경 실패: ' + result.error);
+      toast.error(t('fileOperations.renameError', { error: result.error }));
     }
 
     setIsRenaming(null);
@@ -227,9 +229,9 @@ export const useFileOperations = ({
     const result = await window.electron.duplicateItem(entry.path);
     if (result.success) {
       await onRefresh();
-      toast.success('복제되었습니다');
+      toast.success(t('fileOperations.duplicated'));
     } else {
-      toast.error('복제 실패: ' + result.error);
+      toast.error(t('fileOperations.duplicateError', { error: result.error }));
     }
   };
 
@@ -253,9 +255,9 @@ export const useFileOperations = ({
     await onRefresh();
 
     if (failCount > 0) {
-      toast.warning(`${successCount}개 복제 완료, ${failCount}개 실패`);
+      toast.warning(t('fileOperations.duplicatePartial', { successCount, failCount }));
     } else {
-      toast.success(`${successCount}개 항목이 복제되었습니다`);
+      toast.success(t('fileOperations.duplicatedMulti', { count: successCount }));
     }
   };
 
@@ -279,9 +281,9 @@ export const useFileOperations = ({
     await onRefresh();
 
     if (failCount > 0) {
-      toast.warning(`${successCount}개 붙여넣기 완료, ${failCount}개 실패`);
+      toast.warning(t('fileOperations.pastePartial', { successCount, failCount }));
     } else {
-      toast.success(`${successCount}개 항목이 붙여넣기 되었습니다`);
+      toast.success(t('fileOperations.pastedMulti', { count: successCount }));
     }
   };
 
@@ -296,7 +298,7 @@ export const useFileOperations = ({
 
     const result = await window.electron.openWithDefault(entry.path);
     if (!result.success) {
-      toast.error('열기 실패: ' + result.error);
+      toast.error(t('fileOperations.openError', { error: result.error }));
     }
   };
 
@@ -306,7 +308,7 @@ export const useFileOperations = ({
 
     const result = await window.electron.revealInFinder(entry.path);
     if (!result.success) {
-      toast.error('Finder에서 보기 실패: ' + result.error);
+      toast.error(t('fileOperations.revealError', { error: result.error }));
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FileEntry } from '../../../types/electron';
 
 interface FileContextMenuProps {
@@ -40,6 +41,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
   onDelete,
   onMultiDelete,
 }) => {
+  const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const [adjustedPosition, setAdjustedPosition] = useState<{ x: number; y: number } | null>(null);
 
@@ -109,7 +111,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            경로 복사
+            {t('contextMenu.copyPath')}
           </button>
           <button
             onClick={() => {
@@ -121,14 +123,14 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
             </svg>
-            Finder에서 보기
+            {t('contextMenu.revealInFinder')}
           </button>
         </>
       ) : isMultiSelection ? (
         // 다중 선택 메뉴
         <>
           <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-200">
-            {selectedFiles.length}개 항목 선택됨
+            {t('contextMenu.itemsSelected', { count: selectedFiles.length })}
           </div>
           <button
             onClick={() => {
@@ -140,7 +142,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            모두 복제
+            {t('contextMenu.duplicateAll')}
           </button>
           <div className="border-t border-gray-200 my-1" />
           <button
@@ -153,7 +155,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            모두 삭제
+            {t('contextMenu.deleteAll')}
           </button>
         </>
       ) : (
@@ -169,7 +171,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            기본 앱에서 열기
+            {t('contextMenu.openWithDefault')}
           </button>
           <button
             onClick={() => {
@@ -181,7 +183,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
             </svg>
-            Finder에서 보기
+            {t('contextMenu.revealInFinder')}
           </button>
           <div className="border-t border-gray-200 my-1" />
           <button
@@ -194,7 +196,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            복제
+            {t('contextMenu.duplicate')}
           </button>
           <button
             onClick={() => {
@@ -206,7 +208,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            이름 변경
+            {t('contextMenu.rename')}
           </button>
           <div className="border-t border-gray-200 my-1" />
           <button
@@ -219,7 +221,7 @@ export const FileContextMenu: React.FC<FileContextMenuProps> = ({
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            삭제
+            {t('contextMenu.delete')}
           </button>
         </>
       )}

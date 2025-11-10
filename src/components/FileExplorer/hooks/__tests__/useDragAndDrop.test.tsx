@@ -3,10 +3,13 @@
  * 드래그 앤 드롭 기능, 자동 폴더 확장 테스트
  */
 
+import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
 import { useDragAndDrop } from '../useDragAndDrop';
 import type { FileEntry } from '../../../../types/electron';
 import { mockElectronAPI } from '../../../../../__mocks__/electron';
+import i18n from '../../../../i18n/config';
 
 // Mock ToastContext
 const mockToast = {
@@ -19,6 +22,11 @@ const mockToast = {
 jest.mock('../../../../contexts/ToastContext', () => ({
   useToast: () => mockToast,
 }));
+
+// i18n wrapper for hooks
+const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+);
 
 describe('useDragAndDrop', () => {
   const mockToggleFolder = jest.fn().mockResolvedValue(undefined);
@@ -343,7 +351,7 @@ describe('useDragAndDrop', () => {
     });
 
     it('폴더에 파일을 드롭하면 파일이 이동된다', async () => {
-      const { result } = renderHook(() => useDragAndDrop(defaultProps));
+      const { result } = renderHook(() => useDragAndDrop(defaultProps), { wrapper });
 
       // 드래그 시작
       const dragStartEvent = {
@@ -372,7 +380,7 @@ describe('useDragAndDrop', () => {
         '/test/folder1/file1.md'
       );
       expect(mockOnRefresh).toHaveBeenCalled();
-      expect(mockToast.success).toHaveBeenCalledWith('1개 항목이 이동되었습니다');
+      expect(mockToast.success).toHaveBeenCalledWith('1 items moved');
       expect(result.current.draggedItems).toEqual([]);
     });
 
@@ -381,7 +389,8 @@ describe('useDragAndDrop', () => {
         useDragAndDrop({
           ...defaultProps,
           selectedFiles: ['/test/file1.md', '/test/file2.md'],
-        })
+        }),
+        { wrapper }
       );
 
       // 드래그 시작
@@ -409,7 +418,7 @@ describe('useDragAndDrop', () => {
       });
 
       expect(mockElectronAPI.renameFile).toHaveBeenCalledTimes(2);
-      expect(mockToast.success).toHaveBeenCalledWith('2개 항목이 이동되었습니다');
+      expect(mockToast.success).toHaveBeenCalledWith('2 items moved');
     });
 
     it('자기 자신에게는 드롭할 수 없다', async () => {
@@ -449,7 +458,7 @@ describe('useDragAndDrop', () => {
         modified: new Date('2025-01-01'),
       };
 
-      const { result } = renderHook(() => useDragAndDrop(defaultProps));
+      const { result } = renderHook(() => useDragAndDrop(defaultProps), { wrapper });
 
       // 부모 폴더 드래그
       const dragStartEvent = {
@@ -474,7 +483,7 @@ describe('useDragAndDrop', () => {
       });
 
       expect(mockElectronAPI.renameFile).not.toHaveBeenCalled();
-      expect(mockToast.warning).toHaveBeenCalledWith('하위 폴더로 이동할 수 없습니다.');
+      expect(mockToast.warning).toHaveBeenCalledWith('Cannot move to subfolder.');
     });
 
     it('파일에는 드롭할 수 없다', async () => {
@@ -514,7 +523,8 @@ describe('useDragAndDrop', () => {
         useDragAndDrop({
           ...defaultProps,
           selectedFiles: ['/test/file1.md', '/test/file2.md'],
-        })
+        }),
+        { wrapper }
       );
 
       const dragStartEvent = {
@@ -537,7 +547,7 @@ describe('useDragAndDrop', () => {
         await result.current.handleDrop(dropEvent, testFiles[2]); // folder1
       });
 
-      expect(mockToast.warning).toHaveBeenCalledWith('1개 이동 완료, 1개 실패');
+      expect(mockToast.warning).toHaveBeenCalledWith('1 moved, 1 failed');
     });
   });
 
@@ -555,7 +565,7 @@ describe('useDragAndDrop', () => {
         modified: new Date('2025-01-01'),
       };
 
-      const { result } = renderHook(() => useDragAndDrop(defaultProps));
+      const { result } = renderHook(() => useDragAndDrop(defaultProps), { wrapper });
 
       // 서브폴더의 파일 드래그
       const dragStartEvent = {
@@ -582,7 +592,7 @@ describe('useDragAndDrop', () => {
         '/test/folder1/file-in-subfolder.md',
         '/test/file-in-subfolder.md'
       );
-      expect(mockToast.success).toHaveBeenCalledWith('1개 항목이 이동되었습니다');
+      expect(mockToast.success).toHaveBeenCalledWith('1 items moved');
     });
 
     it('이미 루트에 있는 파일은 이동하지 않는다', async () => {

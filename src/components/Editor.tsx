@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCaretTracking } from '../hooks/useCaretTracking';
 import { FocusOverlay } from './FocusOverlay';
 import type { FocusSettings } from '../types';
@@ -20,6 +21,7 @@ export const Editor: React.FC<EditorProps> = ({
   fileExplorerOpen = false,
   currentFile
 }) => {
+  const { t } = useTranslation();
   const editorRef = useRef<HTMLDivElement>(null);
   const { caretPosition } = useCaretTracking(editorRef);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -94,9 +96,9 @@ export const Editor: React.FC<EditorProps> = ({
         ref={editorRef}
         contentEditable
         role="textbox"
-        aria-label="텍스트 편집기"
+        aria-label={t('editor.aria.label')}
         aria-multiline="true"
-        aria-placeholder="여기에 사적인 글을 작성하세요... 텍스트를 입력하면 커서 주변만 선명하게 보입니다."
+        aria-placeholder={t('editor.placeholder')}
         onInput={handleInput}
         onClick={handleEditorInteraction}
         onFocus={handleEditorInteraction}
@@ -107,7 +109,7 @@ export const Editor: React.FC<EditorProps> = ({
           color: focusSettings.textColor,
           padding: `60px 32px 32px ${fileExplorerOpen ? '288px' : '32px'}`, // 파일 탐색기가 열리면 왼쪽 패딩 추가
         }}
-        data-placeholder="여기에 사적인 글을 작성하세요...&#10;&#10;텍스트를 입력하면 커서 주변만 선명하게 보입니다."
+        data-placeholder={t('editor.placeholder').replace(/\n/g, '&#10;')}
       />
       <style>{`
         [contenteditable]:empty:before {

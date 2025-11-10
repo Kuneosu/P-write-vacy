@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { SortOrder } from '../../../types/electron';
 import { Tooltip } from '../../Tooltip';
 import { getSortOrderLabel } from '../utils/fileUtils';
@@ -39,6 +40,7 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
   onCollapseAll,
   onSelectFolder,
 }) => {
+  const { t } = useTranslation();
   const sortOrders: SortOrder[] = [
     'name-asc',
     'name-desc',
@@ -50,16 +52,16 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
 
   return (
     <div className="flex items-center justify-between mb-3 px-3 py-2 bg-white border-b border-gray-200">
-      <h3 className="text-sm font-semibold text-gray-700">파일</h3>
+      <h3 className="text-sm font-semibold text-gray-700">{t('fileExplorer.title')}</h3>
       <div className="flex gap-2">
         {currentFolder && (
           <>
             {/* 새 파일 만들기 */}
-            <Tooltip content="새 파일 만들기">
+            <Tooltip content={t('fileExplorer.tooltip.newFile')}>
               <button
                 onClick={onCreateFile}
                 className="p-1 hover:bg-gray-100 rounded transition-colors"
-                aria-label="새 파일"
+                aria-label={t('fileExplorer.aria.newFile')}
               >
                 <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -68,11 +70,11 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
             </Tooltip>
 
             {/* 새 폴더 만들기 */}
-            <Tooltip content="새 폴더 만들기">
+            <Tooltip content={t('fileExplorer.tooltip.newFolder')}>
               <button
                 onClick={onCreateFolder}
                 className="p-1 hover:bg-gray-100 rounded transition-colors"
-                aria-label="새 폴더"
+                aria-label={t('fileExplorer.aria.newFolder')}
               >
                 <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -81,11 +83,11 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
             </Tooltip>
 
             {/* 모두 펼치기/접기 */}
-            <Tooltip content={expandedFolders.size > 0 ? "모두 접기" : "모두 펼치기"}>
+            <Tooltip content={expandedFolders.size > 0 ? t('fileExplorer.tooltip.collapse') : t('fileExplorer.tooltip.expand')}>
               <button
                 onClick={expandedFolders.size > 0 ? onCollapseAll : onExpandAll}
                 className="p-1 hover:bg-gray-100 rounded transition-colors"
-                aria-label={expandedFolders.size > 0 ? "모두 축소" : "모두 확장"}
+                aria-label={expandedFolders.size > 0 ? t('fileExplorer.collapseAll') : t('fileExplorer.expandAll')}
               >
                 {expandedFolders.size > 0 ? (
                   <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,11 +103,11 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
 
             {/* 정렬 메뉴 */}
             <div className="relative sort-menu-container">
-              <Tooltip content="정렬 순서 변경">
+              <Tooltip content={t('fileExplorer.tooltip.sort')}>
                 <button
                   onClick={onToggleSortMenu}
                   className="p-1 hover:bg-gray-100 rounded transition-colors"
-                  aria-label="정렬"
+                  aria-label={t('fileExplorer.aria.sort')}
                 >
                   <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
@@ -138,7 +140,7 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
         )}
 
         {/* 작업 폴더 선택 */}
-        <Tooltip content="작업 폴더 선택">
+        <Tooltip content={t('fileExplorer.tooltip.selectWorkingFolder')}>
           <button
             onClick={onSelectFolder}
             className="p-1 hover:bg-gray-100 rounded transition-colors"

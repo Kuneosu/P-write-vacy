@@ -3,11 +3,14 @@
  * 파일/폴더 생성, 삭제, 이름변경, 복제 등 파일 작업 테스트
  */
 
+import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
 import { useFileOperations } from '../useFileOperations';
 import { resetElectronMock, mockElectronAPI } from '../../../../../__mocks__/electron';
 import type { FileEntry } from '../../../../types/electron';
 import { renderWithProviders } from '../../../../test-utils/testUtils';
+import i18n from '../../../../i18n/config';
 
 // ToastContext mock
 jest.mock('../../../../contexts/ToastContext', () => ({
@@ -17,6 +20,19 @@ jest.mock('../../../../contexts/ToastContext', () => ({
     warning: jest.fn(),
   }),
 }));
+
+// Wrapper component for renderHook with i18n
+const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+);
+
+// Custom renderHook with wrapper
+const renderHookWithWrapper = <TProps, TResult>(
+  callback: (props: TProps) => TResult,
+  options?: any
+) => {
+  return renderHook(callback, { wrapper, ...options });
+};
 
 // window.confirm mock
 global.confirm = jest.fn(() => true);
@@ -54,7 +70,7 @@ describe('useFileOperations', () => {
 
   describe('파일 생성', () => {
     it('파일 이름을 입력하고 submit하면 onCreateFile이 호출된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       // 파일 생성 모드 활성화
       act(() => {
@@ -73,7 +89,7 @@ describe('useFileOperations', () => {
     });
 
     it('확장자가 없는 파일 이름은 자동으로 .txt가 추가된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFile(true);
@@ -88,7 +104,7 @@ describe('useFileOperations', () => {
     });
 
     it('앞뒤 공백이 제거된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFile(true);
@@ -103,7 +119,7 @@ describe('useFileOperations', () => {
     });
 
     it('빈 파일 이름은 무시된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFile(true);
@@ -119,7 +135,7 @@ describe('useFileOperations', () => {
     });
 
     it('Cancel하면 상태가 초기화된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFile(true);
@@ -140,7 +156,7 @@ describe('useFileOperations', () => {
     it('폴더 이름을 입력하고 submit하면 폴더가 생성된다', async () => {
       mockElectronAPI.createFolder.mockResolvedValueOnce({ success: true });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       // 폴더 생성 모드 활성화
       act(() => {
@@ -165,7 +181,7 @@ describe('useFileOperations', () => {
     it('폴더 이름 앞뒤 공백이 제거된다', async () => {
       mockElectronAPI.createFolder.mockResolvedValueOnce({ success: true });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFolder(true);
@@ -180,7 +196,7 @@ describe('useFileOperations', () => {
     });
 
     it('빈 폴더 이름은 무시된다', async () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFolder(true);
@@ -217,7 +233,7 @@ describe('useFileOperations', () => {
         error: 'Permission denied',
       });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFolder(true);
@@ -233,7 +249,7 @@ describe('useFileOperations', () => {
     });
 
     it('Cancel하면 상태가 초기화된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.setIsCreatingFolder(true);
@@ -271,13 +287,13 @@ describe('useFileOperations', () => {
       global.confirm = jest.fn(() => true);
       mockElectronAPI.deleteFile.mockResolvedValueOnce({ success: true });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handleDelete(testFile);
       });
 
-      expect(global.confirm).toHaveBeenCalledWith('"test-file.md" 파일을 삭제하시겠습니까?');
+      expect(global.confirm).toHaveBeenCalledWith('Delete "test-file.md" file?');
       expect(mockElectronAPI.deleteFile).toHaveBeenCalledWith('/test-folder/test-file.md');
       expect(mockOnDeleteFile).toHaveBeenCalledWith('/test-folder/test-file.md');
       expect(mockOnRefresh).toHaveBeenCalled();
@@ -287,14 +303,14 @@ describe('useFileOperations', () => {
       global.confirm = jest.fn(() => true);
       mockElectronAPI.deleteFolder.mockResolvedValueOnce({ success: true });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handleDelete(testFolder);
       });
 
       expect(global.confirm).toHaveBeenCalledWith(
-        '"test-folder" 폴더와 내부의 모든 파일을 삭제하시겠습니까?'
+        'Delete "test-folder" folder and all its contents?'
       );
       expect(mockElectronAPI.deleteFolder).toHaveBeenCalledWith('/test-folder/test-folder');
       expect(mockOnRefresh).toHaveBeenCalled();
@@ -303,7 +319,7 @@ describe('useFileOperations', () => {
     it('confirm을 취소하면 삭제가 실행되지 않는다', async () => {
       global.confirm = jest.fn(() => false);
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handleDelete(testFile);
@@ -320,7 +336,7 @@ describe('useFileOperations', () => {
         error: 'File not found',
       });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handleDelete(testFile);
@@ -368,7 +384,7 @@ describe('useFileOperations', () => {
         await result.current.handleMultiDelete();
       });
 
-      expect(global.confirm).toHaveBeenCalledWith('선택한 2개의 항목을 삭제하시겠습니까?');
+      expect(global.confirm).toHaveBeenCalledWith('Delete 2 selected items?');
       expect(mockElectronAPI.deleteFile).toHaveBeenCalledTimes(2);
       expect(mockOnRefresh).toHaveBeenCalled();
     });
@@ -407,7 +423,7 @@ describe('useFileOperations', () => {
     });
 
     it('선택된 파일이 없으면 다중 삭제가 실행되지 않는다', async () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handleMultiDelete();
@@ -428,7 +444,7 @@ describe('useFileOperations', () => {
     };
 
     it('handleRename을 호출하면 이름 변경 모드가 활성화된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.handleRename(testFile);
@@ -441,7 +457,7 @@ describe('useFileOperations', () => {
     it('이름을 변경하면 renameFile이 호출된다', async () => {
       mockElectronAPI.renameFile.mockResolvedValueOnce({ success: true });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.handleRename(testFile);
@@ -465,7 +481,7 @@ describe('useFileOperations', () => {
     });
 
     it('빈 이름으로 변경하려고 하면 무시된다', async () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.handleRename(testFile);
@@ -481,7 +497,7 @@ describe('useFileOperations', () => {
     });
 
     it('같은 이름으로 변경하려고 하면 무시된다', async () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.handleRename(testFile);
@@ -501,7 +517,7 @@ describe('useFileOperations', () => {
         error: 'File already exists',
       });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.handleRename(testFile);
@@ -519,7 +535,7 @@ describe('useFileOperations', () => {
     });
 
     it('Cancel하면 상태가 초기화된다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.handleRename(testFile);
@@ -555,7 +571,7 @@ describe('useFileOperations', () => {
     ];
 
     it('copyToClipboard로 파일을 클립보드에 복사할 수 있다', () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       act(() => {
         result.current.copyToClipboard(testFiles);
@@ -571,7 +587,7 @@ describe('useFileOperations', () => {
         newPath: '/test-folder/file1-copy.md',
       });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handleDuplicate(testFiles[0]);
@@ -587,7 +603,7 @@ describe('useFileOperations', () => {
         error: 'Disk full',
       });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handleDuplicate(testFiles[0]);
@@ -643,7 +659,7 @@ describe('useFileOperations', () => {
         newPath: '/test-folder/file-copy.md',
       });
 
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       // 클립보드에 복사
       act(() => {
@@ -660,7 +676,7 @@ describe('useFileOperations', () => {
     });
 
     it('클립보드가 비어있으면 붙여넣기가 실행되지 않는다', async () => {
-      const { result } = renderHook(() => useFileOperations(defaultProps));
+      const { result } = renderHookWithWrapper(() => useFileOperations(defaultProps));
 
       await act(async () => {
         await result.current.handlePaste();

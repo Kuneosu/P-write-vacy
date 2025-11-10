@@ -109,7 +109,7 @@ describe('FileExplorer 통합 테스트', () => {
         expect(screen.getByText('file1.md')).toBeInTheDocument();
       });
 
-      const newFileButton = screen.getByLabelText('새 파일');
+      const newFileButton = screen.getByLabelText('New file');
       expect(newFileButton).toBeInTheDocument();
     });
 
@@ -120,7 +120,7 @@ describe('FileExplorer 통합 테스트', () => {
         expect(screen.getByText('file1.md')).toBeInTheDocument();
       });
 
-      const newFolderButton = screen.getByLabelText('새 폴더');
+      const newFolderButton = screen.getByLabelText('New folder');
       expect(newFolderButton).toBeInTheDocument();
     });
   });
@@ -185,7 +185,7 @@ describe('FileExplorer 통합 테스트', () => {
         expect(screen.getByText('file1.md')).toBeInTheDocument();
       });
 
-      const sortButton = screen.getByLabelText('정렬');
+      const sortButton = screen.getByLabelText('Sort');
       expect(sortButton).toBeInTheDocument();
     });
   });
@@ -198,7 +198,7 @@ describe('FileExplorer 통합 테스트', () => {
         expect(screen.getByText('folder1')).toBeInTheDocument();
       });
 
-      const expandAllButton = screen.getByLabelText('모두 확장');
+      const expandAllButton = screen.getByLabelText('Expand all');
       expect(expandAllButton).toBeInTheDocument();
     });
   });

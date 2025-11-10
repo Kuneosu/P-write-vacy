@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FileEntry, SortOrder } from '../types/electron';
 import { Tooltip } from './Tooltip';
 
@@ -59,6 +60,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; entry: FileEntry } | null>(null);
 
   // Hooks
+  const { t } = useTranslation();
   const fileTree = useFileTree({
     currentFolder,
     isOpen,
@@ -319,8 +321,8 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </div>
           <div className="text-sm text-gray-300 mt-1 text-center">
             {dragDrop.draggedItems.length === 1
-              ? `${dragDrop.draggedItems[0].type === 'directory' ? '폴더' : '파일'}를 이동합니다`
-              : `${dragDrop.draggedItems.length}개 항목을 이동합니다`
+              ? t(dragDrop.draggedItems[0].type === 'directory' ? 'fileOperations.movingFolder' : 'fileOperations.movingFile')
+              : t('fileOperations.movingMulti', { count: dragDrop.draggedItems.length })
             }
           </div>
         </div>

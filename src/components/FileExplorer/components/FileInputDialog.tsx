@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface FileInputDialogProps {
   type: 'file' | 'folder';
@@ -19,6 +20,7 @@ export const FileInputDialog: React.FC<FileInputDialogProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  const { t } = useTranslation();
   const isFile = type === 'file';
 
   return (
@@ -37,7 +39,7 @@ export const FileInputDialog: React.FC<FileInputDialogProps> = ({
           if (e.key === 'Enter') onSubmit();
           if (e.key === 'Escape') onCancel();
         }}
-        placeholder={isFile ? '파일 이름 (예: note.md)' : '폴더 이름'}
+        placeholder={isFile ? t('fileExplorer.fileNamePlaceholder') : t('fileExplorer.folderNamePlaceholder')}
         className={`w-full px-2 py-1 text-sm border rounded mb-2 focus:outline-none focus:ring-2 ${
           isFile
             ? 'border-blue-300 focus:ring-blue-500'
@@ -54,13 +56,13 @@ export const FileInputDialog: React.FC<FileInputDialogProps> = ({
               : 'bg-green-500 hover:bg-green-600'
           }`}
         >
-          생성
+          {t('fileInput.create')}
         </button>
         <button
           onClick={onCancel}
           className="flex-1 px-2 py-1 text-xs bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
         >
-          취소
+          {t('fileInput.cancel')}
         </button>
       </div>
     </div>

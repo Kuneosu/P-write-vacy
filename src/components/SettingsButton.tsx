@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tooltip } from './Tooltip';
 
 interface SettingsButtonProps {
@@ -7,8 +8,10 @@ interface SettingsButtonProps {
 }
 
 export const SettingsButton: React.FC<SettingsButtonProps> = ({ onClick, isVisible }) => {
+  const { t } = useTranslation();
+
   return (
-    <Tooltip content="설정 열기">
+    <Tooltip content={t('settings.aria.button')}>
       <button
         onClick={onClick}
         className="fixed top-4 right-4 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
@@ -18,7 +21,7 @@ export const SettingsButton: React.FC<SettingsButtonProps> = ({ onClick, isVisib
           opacity: isVisible ? 1 : 0,
           pointerEvents: isVisible ? 'auto' : 'none',
         } as React.CSSProperties}
-        aria-label="설정"
+        aria-label={t('settings.aria.button')}
       >
         <svg
           className="w-6 h-6 text-gray-700 group-hover:rotate-90 transition-transform duration-300"

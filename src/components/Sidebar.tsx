@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FocusSettings, Preset } from '../types';
 import { ContextMenu } from './ContextMenu';
 
@@ -29,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onUpdatePreset,
   onDeletePreset
 }) => {
+  const { t, i18n } = useTranslation();
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -188,11 +190,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const formatSettings = (settings: FocusSettings): string => {
+    const shapeText = settings.focusShape === 'circle'
+      ? t('focus.shape.circle')
+      : t('focus.shape.ellipse');
     return [
-      `크기: ${settings.radiusX}×${settings.radiusY}px`,
-      `블러: ${settings.blurIntensity}px`,
-      `투명도: ${Math.round(settings.blurOpacity * 100)}%`,
-      `모양: ${settings.focusShape === 'circle' ? '원형' : '타원형'}`
+      t('presets.tooltip.size', { radiusX: settings.radiusX, radiusY: settings.radiusY }),
+      t('presets.tooltip.blur', { blurIntensity: settings.blurIntensity }),
+      t('presets.tooltip.opacity', { opacity: Math.round(settings.blurOpacity * 100) }),
+      t('presets.tooltip.shape', { shape: shapeText })
     ].join(' | ');
   };
 
@@ -216,18 +221,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         style={{ zIndex: 150 }}
         role="dialog"
         aria-modal="true"
-        aria-label="설정 패널"
+        aria-label={t('settings.aria.panel')}
       >
         <div className="h-full flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">설정</h2>
+            <h2 className="text-xl font-semibold text-gray-800">{t('settings.title')}</h2>
             <button
               ref={closeButtonRef}
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-              aria-label="닫기"
+              aria-label={t('settings.close')}
             >
               <svg
                 className="w-6 h-6 text-gray-600"
@@ -250,7 +255,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Presets Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-700">프리셋</h3>
+                <h3 className="text-sm font-semibold text-gray-700">{t('presets.title')}</h3>
                 <span className="text-xs text-gray-500">{presets.length}/3</span>
               </div>
 
@@ -279,7 +284,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <button
                           onClick={() => handleSaveEdit(preset.id)}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          aria-label="프리셋 이름 저장"
+                          aria-label={t('presets.saveName')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -335,14 +340,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             setNewPresetName('');
                           }
                         }}
-                        placeholder="프리셋 이름"
+                        placeholder={t('presets.name')}
                         className="flex-1 px-3 py-2 text-sm border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         autoFocus
                       />
                       <button
                         onClick={handleCreatePreset}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        aria-label="프리셋 저장"
+                        aria-label={t('presets.save')}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -354,7 +359,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           setNewPresetName('');
                         }}
                         className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
-                        aria-label="취소"
+                        aria-label={t('presets.cancel')}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -365,19 +370,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <button
                       onClick={() => setIsCreatingPreset(true)}
                       className="w-full px-3 py-2 text-sm text-blue-600 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center gap-2"
-                      aria-label="현재 설정을 새 프리셋으로 저장"
+                      aria-label={t('presets.create')}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
-                      현재 설정 저장
+                      {t('presets.saveCurrentSettings')}
                     </button>
                   )}
                 </div>
               )}
 
               <p className="text-xs text-gray-500">
-                프리셋을 클릭하면 설정이 적용됩니다. 우클릭으로 수정하거나 삭제할 수 있습니다.
+                {t('presets.clickToApply')}
               </p>
             </div>
 
@@ -385,13 +390,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-3">
               <label className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">
-                  프라이버시 모드
+                  {t('privacy.mode')}
                 </span>
                 <button
                   onClick={onPrivacyToggle}
                   role="switch"
                   aria-checked={privacyActive}
-                  aria-label="프라이버시 모드 전환"
+                  aria-label={t('privacy.toggle')}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                     privacyActive ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
@@ -404,21 +409,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               </label>
               <p className="text-xs text-gray-500">
-                커서 주변만 선명하게 표시 (Ctrl+H)
+                {t('privacy.description')}
               </p>
             </div>
 
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-4">
-                포커스 영역
+                {t('focus.title')}
               </h3>
 
               {/* Focus Shape */}
               <div className="space-y-2 mb-4">
                 <label className="text-sm text-gray-700 block mb-2">
-                  모양
+                  {t('focus.shape.title')}
                 </label>
-                <div className="grid grid-cols-2 gap-2" role="group" aria-label="포커스 영역 모양 선택">
+                <div className="grid grid-cols-2 gap-2" role="group" aria-label={t('focus.shape.aria')}>
                   <button
                     onClick={() => handleShapeChange('ellipse')}
                     role="radio"
@@ -429,7 +434,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    타원형
+                    {t('focus.shape.ellipse')}
                   </button>
                   <button
                     onClick={() => handleShapeChange('circle')}
@@ -441,7 +446,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    원형
+                    {t('focus.shape.circle')}
                   </button>
                 </div>
               </div>
@@ -450,7 +455,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {focusSettings.focusShape === 'circle' ? (
                 <div className="space-y-2 mb-4">
                   <label className="flex items-center justify-between text-sm text-gray-700">
-                    <span>크기</span>
+                    <span>{t('focus.size.title')}</span>
                     <span className="font-mono text-blue-600">
                       {focusSettings.radiusX}px
                     </span>
@@ -462,7 +467,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     step="5"
                     value={focusSettings.radiusX}
                     onChange={(e) => handleRadiusXChange(Number(e.target.value))}
-                    aria-label="포커스 영역 크기"
+                    aria-label={t('focus.size.aria.overall')}
                     aria-valuemin={30}
                     aria-valuemax={150}
                     aria-valuenow={focusSettings.radiusX}
@@ -474,7 +479,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {/* Radius X */}
                   <div className="space-y-2 mb-4">
                     <label className="flex items-center justify-between text-sm text-gray-700">
-                      <span>가로 크기</span>
+                      <span>{t('focus.size.width')}</span>
                       <span className="font-mono text-blue-600">
                         {focusSettings.radiusX}px
                       </span>
@@ -486,7 +491,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       step="5"
                       value={focusSettings.radiusX}
                       onChange={(e) => handleRadiusXChange(Number(e.target.value))}
-                      aria-label="포커스 영역 가로 크기"
+                      aria-label={t('focus.size.aria.width')}
                       aria-valuemin={30}
                       aria-valuemax={150}
                       aria-valuenow={focusSettings.radiusX}
@@ -497,7 +502,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {/* Radius Y */}
                   <div className="space-y-2 mb-4">
                     <label className="flex items-center justify-between text-sm text-gray-700">
-                      <span>세로 크기</span>
+                      <span>{t('focus.size.height')}</span>
                       <span className="font-mono text-blue-600">
                         {focusSettings.radiusY}px
                       </span>
@@ -509,7 +514,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       step="5"
                       value={focusSettings.radiusY}
                       onChange={(e) => handleRadiusYChange(Number(e.target.value))}
-                      aria-label="포커스 영역 세로 크기"
+                      aria-label={t('focus.size.aria.height')}
                       aria-valuemin={15}
                       aria-valuemax={100}
                       aria-valuenow={focusSettings.radiusY}
@@ -522,7 +527,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Blur Spread */}
               <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>테두리 번짐</span>
+                  <span>{t('focus.spread.title')}</span>
                   <span className="font-mono text-blue-600">
                     {focusSettings.blurSpread}
                   </span>
@@ -534,33 +539,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   step="5"
                   value={focusSettings.blurSpread}
                   onChange={(e) => handleBlurSpreadChange(Number(e.target.value))}
-                  aria-label="테두리 번짐 정도"
+                  aria-label={t('focus.spread.aria')}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={focusSettings.blurSpread}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
                 <p className="text-xs text-gray-500">
-                  포커스 영역 테두리의 번지는 정도를 조절합니다
+                  {t('focus.spread.description')}
                 </p>
               </div>
             </div>
 
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-4">
-                에디터 스타일
+                {t('style.editor')}
               </h3>
 
               {/* Background Color */}
               <div className="space-y-2 mb-4">
                 <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>배경 색상</span>
+                  <span>{t('colors.background')}</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={focusSettings.backgroundColor}
                       onChange={(e) => handleBackgroundColorChange(e.target.value)}
-                      aria-label="배경 색상 선택"
+                      aria-label={t('colors.aria.background')}
                       className="w-10 h-8 rounded cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
@@ -573,13 +578,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Text Color */}
               <div className="space-y-2 mb-4">
                 <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>텍스트 색상</span>
+                  <span>{t('colors.text')}</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={focusSettings.textColor}
                       onChange={(e) => handleTextColorChange(e.target.value)}
-                      aria-label="텍스트 색상 선택"
+                      aria-label={t('colors.aria.text')}
                       className="w-10 h-8 rounded cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
@@ -592,19 +597,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-4">
-                블러 영역 스타일
+                {t('style.blur')}
               </h3>
 
               {/* Color */}
               <div className="space-y-2 mb-4">
                 <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>블러 색상</span>
+                  <span>{t('focus.blur.color')}</span>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
                       value={focusSettings.blurColor}
                       onChange={(e) => handleColorChange(e.target.value)}
-                      aria-label="블러 색상 선택"
+                      aria-label={t('focus.blur.aria.color')}
                       className="w-10 h-8 rounded cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
@@ -617,7 +622,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Opacity */}
               <div className="space-y-2 mb-4">
                 <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>투명도</span>
+                  <span>{t('focus.blur.opacity')}</span>
                   <span className="font-mono text-blue-600">
                     {Math.round(focusSettings.blurOpacity * 100)}%
                   </span>
@@ -629,7 +634,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   step="0.05"
                   value={focusSettings.blurOpacity}
                   onChange={(e) => handleOpacityChange(Number(e.target.value))}
-                  aria-label="블러 투명도"
+                  aria-label={t('focus.blur.aria.opacity')}
                   aria-valuemin={0}
                   aria-valuemax={1}
                   aria-valuenow={focusSettings.blurOpacity}
@@ -641,7 +646,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {/* Blur Intensity */}
               <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
-                  <span>블러 강도</span>
+                  <span>{t('focus.blur.intensity')}</span>
                   <span className="font-mono text-blue-600">
                     {focusSettings.blurIntensity}px
                   </span>
@@ -653,7 +658,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   step="1"
                   value={focusSettings.blurIntensity}
                   onChange={(e) => handleBlurIntensityChange(Number(e.target.value))}
-                  aria-label="블러 강도"
+                  aria-label={t('focus.blur.aria.intensity')}
                   aria-valuemin={0}
                   aria-valuemax={20}
                   aria-valuenow={focusSettings.blurIntensity}
@@ -661,8 +666,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
                 <p className="text-xs text-gray-500">
-                  블러 효과의 강도를 조절합니다
+                  {t('focus.blur.description')}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Language Selection */}
+          <div className="p-6 border-t border-gray-200">
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-700">{t('language.title')}</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => i18n.changeLanguage('ko')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    i18n.language === 'ko'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+                >
+                  {t('language.korean')}
+                </button>
+                <button
+                  onClick={() => i18n.changeLanguage('en')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    i18n.language === 'en'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+                >
+                  {t('language.english')}
+                </button>
               </div>
             </div>
           </div>
@@ -670,14 +706,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Footer */}
           <div className="p-6 border-t border-gray-200">
             <div className="text-xs text-gray-500 space-y-1">
-              <p className="font-semibold">단축키</p>
+              <p className="font-semibold">{t('shortcuts.title')}</p>
               <p>
                 <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">
                   Ctrl
                 </kbd>{' '}
                 +{' '}
                 <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">H</kbd> -
-                프라이버시 토글
+                {t('shortcuts.privacy')}
               </p>
             </div>
           </div>
@@ -695,7 +731,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             if (preset) handleEditPreset(preset);
           }}
           onDelete={() => {
-            if (confirm('이 프리셋을 삭제하시겠습니까?')) {
+            if (confirm(t('presets.deleteConfirm'))) {
               onDeletePreset(contextMenu.presetId);
             }
           }}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type SaveStatusType = 'saved' | 'saving' | 'unsaved' | 'error';
 
@@ -9,6 +10,8 @@ interface SaveStatusProps {
 }
 
 export const SaveStatus: React.FC<SaveStatusProps> = ({ status, errorMessage, savedFileName }) => {
+  const { t } = useTranslation();
+
   const getStatusConfig = () => {
     switch (status) {
       case 'saving':
@@ -18,7 +21,9 @@ export const SaveStatus: React.FC<SaveStatusProps> = ({ status, errorMessage, sa
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           ),
-          text: savedFileName ? `${savedFileName} 저장 중` : '저장 중',
+          text: savedFileName
+            ? t('saveStatus.savingWithFile', { fileName: savedFileName })
+            : t('saveStatus.saving'),
           color: 'text-gray-600 bg-gray-50/80 border-gray-200/50',
         };
       case 'saved':
@@ -28,7 +33,9 @@ export const SaveStatus: React.FC<SaveStatusProps> = ({ status, errorMessage, sa
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           ),
-          text: savedFileName ? `${savedFileName} 저장됨` : '저장됨',
+          text: savedFileName
+            ? t('saveStatus.savedWithFile', { fileName: savedFileName })
+            : t('saveStatus.saved'),
           color: 'text-gray-600 bg-gray-50/80 border-gray-200/50',
         };
       case 'unsaved':
@@ -38,7 +45,7 @@ export const SaveStatus: React.FC<SaveStatusProps> = ({ status, errorMessage, sa
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           ),
-          text: '저장되지 않음',
+          text: t('saveStatus.unsaved'),
           color: 'text-gray-600 bg-gray-50/80 border-gray-200/50',
         };
       case 'error':
@@ -48,7 +55,9 @@ export const SaveStatus: React.FC<SaveStatusProps> = ({ status, errorMessage, sa
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           ),
-          text: errorMessage || '저장 실패',
+          text: errorMessage
+            ? t('saveStatus.errorWithMessage', { message: errorMessage })
+            : t('saveStatus.error'),
           color: 'text-red-600 bg-red-50/80 border-red-200/50',
         };
     }

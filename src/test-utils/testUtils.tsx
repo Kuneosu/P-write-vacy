@@ -5,14 +5,20 @@
 
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
 import { ToastProvider } from '../contexts/ToastContext';
 import type { FileEntry } from '../types/electron';
+import i18n from '../i18n/config';
 
 /**
- * ToastProvider로 감싸진 render 함수
+ * ToastProvider와 I18nextProvider로 감싸진 render 함수
  */
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-  return <ToastProvider>{children}</ToastProvider>;
+  return (
+    <I18nextProvider i18n={i18n}>
+      <ToastProvider>{children}</ToastProvider>
+    </I18nextProvider>
+  );
 };
 
 export const renderWithProviders = (

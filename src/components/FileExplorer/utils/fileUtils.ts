@@ -1,5 +1,6 @@
 import React from 'react';
 import type { FileEntry, SortOrder } from '../../../types/electron';
+import i18n from '../../../i18n/config';
 
 /**
  * 정렬 순서 라벨 반환
@@ -7,17 +8,17 @@ import type { FileEntry, SortOrder } from '../../../types/electron';
 export const getSortOrderLabel = (order: SortOrder): string => {
   switch (order) {
     case 'name-asc':
-      return '파일 이름 (알파벳순)';
+      return i18n.t('fileExplorer.sortOrder.nameAsc');
     case 'name-desc':
-      return '파일 이름 (알파벳 역순)';
+      return i18n.t('fileExplorer.sortOrder.nameDesc');
     case 'modified-desc':
-      return '업데이트 날짜 (최신순)';
+      return i18n.t('fileExplorer.sortOrder.modifiedDesc');
     case 'modified-asc':
-      return '업데이트 날짜 (오래된 순)';
+      return i18n.t('fileExplorer.sortOrder.modifiedAsc');
     case 'created-desc':
-      return '생성일 (최신순)';
+      return i18n.t('fileExplorer.sortOrder.createdDesc');
     case 'created-asc':
-      return '생성일 (오래된 순)';
+      return i18n.t('fileExplorer.sortOrder.createdAsc');
   }
 };
 
@@ -45,7 +46,7 @@ export const findEntryInAll = (
  * 날짜를 상대적 또는 절대적 형식으로 포맷팅
  */
 export const formatDate = (date: Date | undefined): string => {
-  if (!date) return '알 수 없음';
+  if (!date) return i18n.t('fileExplorer.dateFormat.unknown');
 
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -53,12 +54,14 @@ export const formatDate = (date: Date | undefined): string => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return '방금 전';
-  if (diffMins < 60) return `${diffMins}분 전`;
-  if (diffHours < 24) return `${diffHours}시간 전`;
-  if (diffDays < 7) return `${diffDays}일 전`;
+  if (diffMins < 1) return i18n.t('fileExplorer.dateFormat.justNow');
+  if (diffMins < 60) return i18n.t('fileExplorer.dateFormat.minutesAgo', { count: diffMins });
+  if (diffHours < 24) return i18n.t('fileExplorer.dateFormat.hoursAgo', { count: diffHours });
+  if (diffDays < 7) return i18n.t('fileExplorer.dateFormat.daysAgo', { count: diffDays });
 
-  return date.toLocaleDateString('ko-KR', {
+  // Use current language for date formatting
+  const locale = i18n.language === 'ko' ? 'ko-KR' : 'en-US';
+  return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -78,11 +81,11 @@ export const getDraggedItemsLabel = (draggedItems: FileEntry[]): string => {
   const folderCount = draggedItems.filter(item => item.type === 'directory').length;
 
   if (fileCount > 0 && folderCount > 0) {
-    return `파일 ${fileCount}개, 폴더 ${folderCount}개`;
+    return i18n.t('fileExplorer.dragDrop.filesAndFolders', { fileCount, folderCount });
   } else if (fileCount > 0) {
-    return `파일 ${fileCount}개`;
+    return i18n.t('fileExplorer.dragDrop.files', { count: fileCount });
   } else {
-    return `폴더 ${folderCount}개`;
+    return i18n.t('fileExplorer.dragDrop.folders', { count: folderCount });
   }
 };
 
@@ -98,7 +101,7 @@ export const getDropTargetName = (
   if (!dropTarget) return null;
 
   if (dropTarget === 'root') {
-    return currentFolder?.split('/').pop() || '루트';
+    return currentFolder?.split('/').pop() || i18n.t('fileExplorer.dragDrop.root');
   }
 
   // Find the folder in files or folderContents
@@ -146,8 +149,8 @@ export const getFileTooltipContent = (entry: FileEntry): React.ReactNode => {
   return React.createElement('div', { className: 'space-y-1' },
     React.createElement('div', { className: 'font-medium' }, entry.name),
     React.createElement('div', { className: 'text-xs text-gray-300' },
-      React.createElement('div', null, `수정: ${formatDate(entry.modified)}`),
-      React.createElement('div', null, `생성: ${formatDate(entry.created)}`)
+      React.createElement('div', null, `${i18n.t('fileExplorer.dateFormat.modified')}: ${formatDate(entry.modified)}`),
+      React.createElement('div', null, `${i18n.t('fileExplorer.dateFormat.created')}: ${formatDate(entry.created)}`)
     )
   );
 };
@@ -165,9 +168,9 @@ export const getFolderTooltipContent = (
     React.createElement('div', { className: 'font-medium' }, entry.name),
     stats
       ? React.createElement('div', { className: 'text-xs text-gray-300' },
-          React.createElement('div', null, `폴더 ${stats.folders}개`),
-          React.createElement('div', null, `파일 ${stats.files}개`)
+          React.createElement('div', null, i18n.t('fileExplorer.dragDrop.folderStats', { folders: stats.folders })),
+          React.createElement('div', null, i18n.t('fileExplorer.dragDrop.fileStats', { files: stats.files }))
         )
-      : React.createElement('div', { className: 'text-xs text-gray-300' }, '클릭하여 내용 확인')
+      : React.createElement('div', { className: 'text-xs text-gray-300' }, i18n.t('fileExplorer.tooltip.clickToView'))
   );
 };

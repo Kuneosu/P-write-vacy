@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { FileEntry } from '../../../types/electron';
 import { useToast } from '../../../contexts/ToastContext';
 
@@ -35,6 +36,7 @@ export const useDragAndDrop = ({
   toggleFolder,
   onRefresh,
 }: UseDragAndDropProps): UseDragAndDropReturn => {
+  const { t } = useTranslation();
   const toast = useToast();
 
   const [draggedItems, setDraggedItems] = useState<FileEntry[]>([]);
@@ -153,7 +155,7 @@ export const useDragAndDrop = ({
 
       // Can't drop parent folder into its child
       if (targetEntry.path.startsWith(draggedItem.path + '/')) {
-        toast.warning('하위 폴더로 이동할 수 없습니다.');
+        toast.warning(t('fileOperations.cannotMoveToChild'));
         continue;
       }
 
@@ -174,9 +176,9 @@ export const useDragAndDrop = ({
     await onRefresh(expandedFolders);
 
     if (failCount > 0) {
-      toast.warning(`${successCount}개 이동 완료, ${failCount}개 실패`);
+      toast.warning(t('fileOperations.movePartial', { successCount, failCount }));
     } else if (successCount > 0) {
-      toast.success(`${successCount}개 항목이 이동되었습니다`);
+      toast.success(t('fileOperations.movedMulti', { count: successCount }));
     }
 
     setDraggedItems([]);
@@ -225,9 +227,9 @@ export const useDragAndDrop = ({
     await onRefresh(expandedFolders);
 
     if (failCount > 0) {
-      toast.warning(`${successCount}개 이동 완료, ${failCount}개 실패`);
+      toast.warning(t('fileOperations.movePartial', { successCount, failCount }));
     } else if (successCount > 0) {
-      toast.success(`${successCount}개 항목이 이동되었습니다`);
+      toast.success(t('fileOperations.movedMulti', { count: successCount }));
     }
 
     setDraggedItems([]);
