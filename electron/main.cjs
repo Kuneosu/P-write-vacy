@@ -1,49 +1,189 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, protocol } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 
+// app:// 프로토콜에 특권 부여 (localStorage 등 사용 가능하도록)
+// 반드시 app.whenReady() 전에 호출해야 함
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      allowServiceWorkers: true,
+      bypassCSP: false,
+      stream: true
+    }
+  }
+]);
+
+// 디버그 로깅 활성화
+console.log('Electron app starting...');
+console.log('__dirname:', __dirname);
+console.log('process.env.NODE_ENV:', process.env.NODE_ENV);
+
 let mainWindow;
 
+// 처리되지 않은 예외 캐치
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 function createWindow() {
+  console.log('Creating window...');
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    titleBarStyle: 'hiddenInset', // macOS: 타이틀바 숨기기
-    trafficLightPosition: { x: 16, y: 16 }, // macOS: 신호등 버튼 위치
-    frame: process.platform !== 'darwin', // Windows/Linux: 기본 프레임 유지
+    minWidth: 800,
+    minHeight: 600,
+    show: false, // 준비될 때까지 숨김
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 16, y: 16 },
+    frame: process.platform !== 'darwin',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.cjs'),
+      webSecurity: false, // 디버깅을 위해 임시로 비활성화
     },
+  });
+
+  // 웹 컨텐츠 로그
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log('[Renderer]', message, `(${sourceId}:${line})`);
   });
 
   // 개발 모드: Vite 개발 서버 로드
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
-    // 개발 모드에서만 DevTools 활성화
+    console.log('Loading development server...');
+    mainWindow.loadURL('http://localhost:5173').catch(err => {
+      console.error('Failed to load dev server:', err);
+    });
     mainWindow.webContents.openDevTools();
   } else {
     // 프로덕션 모드: 빌드된 파일 로드
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-    // 프로덕션에서는 DevTools 비활성화 (보안)
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    console.log('Loading production build from:', indexPath);
+    console.log('File exists:', fsSync.existsSync(indexPath));
+    console.log('Resources path:', process.resourcesPath);
+    console.log('__dirname:', __dirname);
+
+    // loadFile 대신 loadURL + custom protocol 사용
+    mainWindow.loadURL('app://./index.html').catch(err => {
+      console.error('Failed to load index.html:', err);
+    });
+
+    // 프로덕션에서도 디버깅을 위해 DevTools 열기
+    mainWindow.webContents.openDevTools();
   }
 
+  // ready-to-show 이벤트로 깜빡임 방지
+  mainWindow.once('ready-to-show', () => {
+    console.log('Window ready to show');
+    mainWindow.show();
+  });
+
+  // 로딩 실패 감지
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load:', errorCode, errorDescription);
+  });
+
+  // 윈도우 이벤트 핸들링
   mainWindow.on('closed', () => {
+    console.log('Window closed');
     mainWindow = null;
+  });
+
+  // 크래시 감지
+  mainWindow.webContents.on('crashed', (event, killed) => {
+    console.error('Window crashed, killed:', killed);
+    // 크래시 시 앱 재시작 옵션
+    const options = {
+      type: 'error',
+      title: 'Application Crashed',
+      message: 'The application has crashed. Do you want to restart?',
+      buttons: ['Restart', 'Quit']
+    };
+    dialog.showMessageBox(options).then((result) => {
+      if (result.response === 0) {
+        app.relaunch();
+        app.exit(0);
+      } else {
+        app.quit();
+      }
+    });
+  });
+
+  mainWindow.on('unresponsive', () => {
+    console.error('Window unresponsive');
+  });
+
+  mainWindow.on('responsive', () => {
+    console.log('Window responsive again');
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  // app:// custom protocol 등록
+  protocol.registerFileProtocol('app', (request, callback) => {
+    let url = request.url.substring(6); // 'app://' 제거
+    console.log('App protocol request:', url);
+
+    // URL 디코딩 및 query string 제거
+    url = decodeURIComponent(url.split('?')[0]);
+
+    // './' 또는 '/' 로 시작하는 경로 정규화
+    url = url.replace(/^\.\//, '');
+    if (!url.startsWith('/')) {
+      url = '/' + url;
+    }
+
+    console.log('Normalized URL:', url);
+
+    // 먼저 asar.unpacked에서 찾기 (미디어 파일용)
+    const unpackedPath = path.join(process.resourcesPath, 'app.asar.unpacked', 'dist', url);
+    console.log('Checking unpacked:', unpackedPath);
+
+    if (fsSync.existsSync(unpackedPath)) {
+      console.log('✓ Found in unpacked:', unpackedPath);
+      callback({ path: unpackedPath });
+      return;
+    }
+
+    // asar 내부에서 찾기 (일반 파일용)
+    const asarPath = path.join(__dirname, '..', 'dist', url);
+    console.log('Checking asar:', asarPath);
+
+    if (fsSync.existsSync(asarPath)) {
+      console.log('✓ Found in asar:', asarPath);
+      callback({ path: asarPath });
+      return;
+    }
+
+    console.error('✗ File not found:', url);
+    callback({ error: -6 }); // ERR_FILE_NOT_FOUND
+  });
+
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  console.log('All windows closed');
+  // 모든 플랫폼에서 앱 종료
+  app.quit();
 });
 
 app.on('activate', () => {
+  console.log('App activated');
+  // macOS: Dock 아이콘 클릭 시 창이 없으면 새로 생성
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
