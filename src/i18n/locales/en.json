@@ -239,24 +239,24 @@
         "toggle": "Toggle quickly with Ctrl+H"
       }
     },
-    "files": {
-      "title": "File Management",
-      "subtitle": "Organize notes by folder",
-      "description": "Select a local folder to organize your notes systematically. Create, rename, delete, and drag & drop files in the file explorer.",
+    "markdown": {
+      "title": "Markdown Viewer",
+      "subtitle": "Real-time preview support",
+      "description": "See the rendered output in real-time as you write markdown files.",
       "features": {
-        "explorer": "Intuitive file explorer (Ctrl+S)",
-        "markdown": "Markdown preview support",
-        "organize": "Drag files and folders to organize"
+        "preview": "Real-time rendering",
+        "syntax": "Standard markdown syntax support",
+        "toggle": "Switch between edit/preview mode"
       }
     },
-    "shortcuts": {
-      "title": "Keyboard Shortcuts",
-      "subtitle": "Work faster with shortcuts",
-      "list": {
-        "privacy": "Toggle privacy mode",
-        "fileExplorer": "Open/close file explorer",
-        "settings": "Open/close settings",
-        "escape": "Close panels"
+    "presets": {
+      "title": "Preset Feature",
+      "subtitle": "Save your custom settings",
+      "description": "Save frequently used focus area settings as presets and quickly switch between them.",
+      "features": {
+        "save": "Save current settings as preset (max 3)",
+        "switch": "Switch presets with one click",
+        "manage": "Edit preset names and delete"
       }
     }
   }

@@ -670,35 +670,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </p>
               </div>
             </div>
-          </div>
 
-          {/* Language Selection */}
-          <div className="p-6 border-t border-gray-200">
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-700">{t('language.title')}</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => i18n.changeLanguage('ko')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    i18n.language === 'ko'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-                >
-                  {t('language.korean')}
-                </button>
-                <button
-                  onClick={() => i18n.changeLanguage('en')}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    i18n.language === 'en'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-                >
-                  {t('language.english')}
-                </button>
+            {/* Language Selection */}
+            <div className="border-t border-gray-200 pt-6">
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-gray-700">{t('language.title')}</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => i18n.changeLanguage('ko')}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      i18n.language === 'ko'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+                  >
+                    {t('language.korean')}
+                  </button>
+                  <button
+                    onClick={() => i18n.changeLanguage('en')}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      i18n.language === 'en'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                    style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+                  >
+                    {t('language.english')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
