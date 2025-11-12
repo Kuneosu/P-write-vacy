@@ -8,6 +8,7 @@ interface FileToolbarProps {
   // Folder state
   currentFolder: string | null;
   expandedFolders: Set<string>;
+  isExpanding?: boolean;
 
   // Sort state
   sortOrder: SortOrder;
@@ -30,6 +31,7 @@ interface FileToolbarProps {
 export const FileToolbar: React.FC<FileToolbarProps> = ({
   currentFolder,
   expandedFolders,
+  isExpanding = false,
   sortOrder,
   showSortMenu,
   onSortOrderChange,
@@ -86,10 +88,17 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
             <Tooltip content={expandedFolders.size > 0 ? t('fileExplorer.tooltip.collapse') : t('fileExplorer.tooltip.expand')}>
               <button
                 onClick={expandedFolders.size > 0 ? onCollapseAll : onExpandAll}
-                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label={expandedFolders.size > 0 ? t('fileExplorer.collapseAll') : t('fileExplorer.expandAll')}
+                disabled={isExpanding}
               >
-                {expandedFolders.size > 0 ? (
+                {isExpanding ? (
+                  // 로딩 스피너
+                  <svg className="w-4 h-4 text-gray-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : expandedFolders.size > 0 ? (
                   <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>

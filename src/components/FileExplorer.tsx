@@ -171,6 +171,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           <FileToolbar
             currentFolder={currentFolder}
             expandedFolders={fileTree.expandedFolders}
+            isExpanding={fileTree.isExpanding}
             sortOrder={sortOrder}
             showSortMenu={showSortMenu}
             onSortOrderChange={(order) => {

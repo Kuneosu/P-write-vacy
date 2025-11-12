@@ -13,6 +13,7 @@ interface UseFileTreeReturn {
   files: FileEntry[];
   expandedFolders: Set<string>;
   folderContents: Map<string, FileEntry[]>;
+  isExpanding: boolean;
 
   // File loading
   loadFiles: (folderPath: string) => Promise<void>;
@@ -41,6 +42,7 @@ export const useFileTree = ({
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [folderContents, setFolderContents] = useState<Map<string, FileEntry[]>>(new Map());
+  const [isExpanding, setIsExpanding] = useState(false);
 
   // 파일 정렬 함수
   const sortFiles = (filesToSort: FileEntry[]): FileEntry[] => {
@@ -97,46 +99,100 @@ export const useFileTree = ({
     setExpandedFolders(newExpanded);
   };
 
-  // 모든 폴더 확장
+  // 모든 폴더 확장 (최적화: 완전 병렬 처리)
   const handleExpandAll = async () => {
     if (!window.electron || !currentFolder) return;
 
-    // Get all folders from root
-    const allFolders = files.filter(f => f.type === 'directory');
-    const newExpanded = new Set<string>();
-    const newFolderContents = new Map(folderContents);
+    setIsExpanding(true);
 
-    // Recursively expand all folders
-    const expandRecursive = async (folders: FileEntry[]) => {
-      if (!window.electron) return;
+    try {
+      // Get all folders from root
+      const allFolders = files.filter(f => f.type === 'directory');
+      const newExpanded = new Set<string>();
+      const newFolderContents = new Map(folderContents);
 
-      for (const folder of folders) {
-        newExpanded.add(folder.path);
+      // 로드가 필요한 폴더 수집
+      const foldersToLoad: FileEntry[] = [];
 
-        // Load folder contents if not already loaded
-        if (!newFolderContents.has(folder.path)) {
-          const entries = await window.electron.readDirectory(folder.path);
-          newFolderContents.set(folder.path, entries);
+      // 1단계: 캐시된 폴더 즉시 수집 (동기, 빠름)
+      const collectAllFolders = (folders: FileEntry[]) => {
+        for (const folder of folders) {
+          newExpanded.add(folder.path);
 
-          // Recursively expand subfolders
-          const subFolders = entries.filter(e => e.type === 'directory');
-          if (subFolders.length > 0) {
-            await expandRecursive(subFolders);
-          }
-        } else {
-          // Already loaded, just expand subfolders
-          const entries = newFolderContents.get(folder.path)!;
-          const subFolders = entries.filter(e => e.type === 'directory');
-          if (subFolders.length > 0) {
-            await expandRecursive(subFolders);
+          if (newFolderContents.has(folder.path)) {
+            // 캐시됨 - 하위 폴더 계속 수집
+            const entries = newFolderContents.get(folder.path)!;
+            const subFolders = entries.filter(e => e.type === 'directory');
+            if (subFolders.length > 0) {
+              collectAllFolders(subFolders);
+            }
+          } else {
+            // 새 폴더 - 로드 목록에 추가
+            foldersToLoad.push(folder);
           }
         }
-      }
-    };
+      };
 
-    await expandRecursive(allFolders);
-    setExpandedFolders(newExpanded);
-    setFolderContents(newFolderContents);
+      // 모든 폴더 수집
+      collectAllFolders(allFolders);
+
+      // 캐시된 폴더만 있으면 즉시 반영
+      if (foldersToLoad.length === 0) {
+        setExpandedFolders(newExpanded);
+        return;
+      }
+
+      // 2단계: 새 폴더 병렬 로드 (완전 비동기)
+      const loadFolder = async (folder: FileEntry): Promise<FileEntry[]> => {
+        if (!window.electron) return [];
+
+        const entries = await window.electron.readDirectory(folder.path);
+        newFolderContents.set(folder.path, entries);
+
+        // 하위 폴더들도 로드 목록에 추가
+        const subFolders = entries.filter(e => e.type === 'directory');
+        const newSubFolders: FileEntry[] = [];
+
+        for (const subFolder of subFolders) {
+          newExpanded.add(subFolder.path);
+          if (!newFolderContents.has(subFolder.path)) {
+            newSubFolders.push(subFolder);
+          } else {
+            // 캐시된 하위 폴더의 자식들도 수집
+            collectAllFolders([subFolder]);
+          }
+        }
+
+        return newSubFolders;
+      };
+
+      // 모든 depth를 완전 병렬로 처리
+      let currentBatch = foldersToLoad;
+      while (currentBatch.length > 0) {
+        // 현재 batch 병렬 로드
+        const results = await Promise.all(currentBatch.map(loadFolder));
+
+        // 다음 batch 수집 (중복 제거)
+        const nextBatch = results.flat();
+        const uniqueNext: FileEntry[] = [];
+        const seen = new Set<string>();
+
+        for (const folder of nextBatch) {
+          if (!seen.has(folder.path)) {
+            seen.add(folder.path);
+            uniqueNext.push(folder);
+          }
+        }
+
+        currentBatch = uniqueNext;
+      }
+
+      // 한 번만 UI 업데이트
+      setExpandedFolders(newExpanded);
+      setFolderContents(newFolderContents);
+    } finally {
+      setIsExpanding(false);
+    }
   };
 
   // 모든 폴더 축소
@@ -207,6 +263,7 @@ export const useFileTree = ({
     files,
     expandedFolders,
     folderContents,
+    isExpanding,
     loadFiles,
     toggleFolder,
     handleExpandAll,
