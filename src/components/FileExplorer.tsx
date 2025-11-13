@@ -211,7 +211,7 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           {/* File Tree or Empty State */}
           {!currentFolder ? (
             <div className="text-center py-8 text-gray-500 text-sm">
-              폴더를 선택하세요
+              {t('fileExplorer.noFolderSelected')}
             </div>
           ) : (
             <div

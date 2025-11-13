@@ -91,6 +91,7 @@
     "close": "Close file explorer",
     "toggle": "File explorer",
     "selectFolder": "Select Folder",
+    "noFolderSelected": "Please select a folder",
     "selectFile": "Select a file",
     "selectFileDescription": "Choose a file from the explorer on the left or create a new one",
     "newFile": "New file",

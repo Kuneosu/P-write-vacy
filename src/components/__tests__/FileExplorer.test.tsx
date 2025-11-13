@@ -83,7 +83,7 @@ describe('FileExplorer 통합 테스트', () => {
         <FileExplorer {...defaultProps} currentFolder={null} />
       );
 
-      expect(screen.getByText('폴더를 선택하세요')).toBeInTheDocument();
+      expect(screen.getByText('Please select a folder')).toBeInTheDocument();
     });
 
     it('currentFolder가 설정되면 파일 목록을 로드한다', async () => {
