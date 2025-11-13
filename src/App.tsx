@@ -235,6 +235,11 @@ function App() {
     setFocusSettings(newSettings);
   };
 
+  const handleResetSettings = () => {
+    setFocusSettings(DEFAULT_FOCUS_SETTINGS);
+    toast.success(t('settings.resetSuccess'));
+  };
+
   // Preset handlers
   const handleSavePreset = (name: string) => {
     if (presets.length >= 3) {
@@ -706,6 +711,7 @@ function App() {
         onPrivacyToggle={() => setPrivacyActive((prev) => !prev)}
         focusSettings={focusSettings}
         onSettingsChange={handleSettingsChange}
+        onResetSettings={handleResetSettings}
         presets={presets}
         onSavePreset={handleSavePreset}
         onLoadPreset={handleLoadPreset}

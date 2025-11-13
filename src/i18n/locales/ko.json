@@ -2,6 +2,9 @@
   "settings": {
     "title": "설정",
     "close": "닫기",
+    "reset": "설정 초기화",
+    "resetConfirm": "모든 설정을 기본값으로 초기화하시겠습니까?",
+    "resetSuccess": "설정이 초기화되었습니다",
     "aria": {
       "panel": "설정 패널",
       "button": "설정"

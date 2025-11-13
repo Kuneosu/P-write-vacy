@@ -2,6 +2,9 @@
   "settings": {
     "title": "Settings",
     "close": "Close",
+    "reset": "Reset Settings",
+    "resetConfirm": "Are you sure you want to reset all settings to default?",
+    "resetSuccess": "Settings have been reset",
     "aria": {
       "panel": "Settings panel",
       "button": "Settings"
