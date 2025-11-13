@@ -471,7 +471,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     aria-valuemin={30}
                     aria-valuemax={150}
                     aria-valuenow={focusSettings.radiusX}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                   />
                 </div>
               ) : (
@@ -495,7 +494,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       aria-valuemin={30}
                       aria-valuemax={150}
                       aria-valuenow={focusSettings.radiusX}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                     />
                   </div>
 
@@ -518,7 +516,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       aria-valuemin={15}
                       aria-valuemax={100}
                       aria-valuenow={focusSettings.radiusY}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                     />
                   </div>
                 </>
@@ -543,7 +540,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={focusSettings.blurSpread}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                 />
                 <p className="text-xs text-gray-500">
                   {t('focus.spread.description')}
@@ -639,7 +635,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-valuemax={1}
                   aria-valuenow={focusSettings.blurOpacity}
                   aria-valuetext={`${Math.round(focusSettings.blurOpacity * 100)}%`}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                 />
               </div>
 
@@ -663,7 +658,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-valuemax={20}
                   aria-valuenow={focusSettings.blurIntensity}
                   aria-valuetext={`${focusSettings.blurIntensity}px`}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                 />
                 <p className="text-xs text-gray-500">
                   {t('focus.blur.description')}
