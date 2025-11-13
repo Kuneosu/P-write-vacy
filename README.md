@@ -1,10 +1,27 @@
-# P-write-vacy (React)
+<div align="center">
+  <img src="assets/app_icon.png" alt="Pwritevacy Icon" width="120" height="120">
 
-프라이버시를 보호하는 텍스트 에디터 - 옆에서 보는 사람으로부터 글을 보호합니다.
+  # Pwritevacy
 
-## 주요 기능
+  **프라이버시를 보호하는 텍스트 에디터**
 
-### 프라이버시 보호
+  옆에서 보는 사람으로부터 글을 보호합니다
+
+  [![Version](https://img.shields.io/badge/version-1.0.0--beta-blue.svg)](https://github.com/Kuneosu/P-write-vacy)
+  [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+  [![Tests](https://img.shields.io/badge/tests-106%20passed-brightgreen.svg)](https://github.com/Kuneosu/P-write-vacy)
+  [![Coverage](https://img.shields.io/badge/coverage-89.37%25-brightgreen.svg)](https://github.com/Kuneosu/P-write-vacy)
+
+</div>
+
+## ✨ 주요 기능
+
+### 🔒 프라이버시 보호
+
+<div align="center">
+  <img src="assets/gifs/privacy-mode.gif" alt="Privacy Mode Demo" width="600">
+</div>
+
 - **중심시야 최적화**: 커서/마우스 주변만 선명하게 표시하고 나머지는 블러 처리
 - **실시간 포커스 추적**: 텍스트 입력 시 커서를 자동으로 따라가는 포커스
 - **프리셋 기능**: 자주 사용하는 설정을 프리셋으로 저장 (최대 3개)
@@ -15,52 +32,66 @@
   - 블러 번짐 정도 및 강도 조절
   - 배경색 및 텍스트 색상 커스터마이징
 
-### 파일 관리
+### 📁 파일 관리
 - **파일 탐색기**: 폴더 선택 후 파일 트리 구조 탐색
 - **파일/폴더 생성**: 새 파일 및 폴더 생성 기능
 - **자동 저장**: 파일 수정 시 자동으로 저장 (1초 후)
 - **정렬 기능**: 파일 이름, 수정일, 생성일 기준 정렬
 
-### 마크다운 지원
+### 📝 마크다운 지원
+
+<div align="center">
+  <img src="assets/gifs/mdviewer.gif" alt="Markdown Viewer Demo" width="600">
+</div>
+
 - **마크다운 뷰어**: 마크다운 파일의 렌더링된 결과 확인
 - **GitHub Flavored Markdown**: 테이블, 체크박스 등 GFM 지원
 - **뷰어/편집 모드 토글**: 마크다운 파일 편집과 미리보기 전환
 - **이미지 지연 로딩**: 대용량 마크다운 파일 성능 최적화
 
-### 국제화
+### 🎨 프리셋 시스템
+
+<div align="center">
+  <img src="assets/gifs/preset.gif" alt="Preset Feature Demo" width="600">
+</div>
+
+- **설정 저장**: 자주 사용하는 포커스 설정을 프리셋으로 저장
+- **빠른 전환**: 저장된 프리셋을 클릭 한 번으로 즉시 적용
+- **최대 3개**: 다양한 상황에 맞는 프리셋 관리
+
+### 🌏 국제화
 - **다국어 지원**: 한국어, 영어 완전 지원
 - **실시간 언어 전환**: 설정 패널에서 즉시 언어 변경
 - **모든 UI 텍스트 번역**: 버튼, 메뉴, 토스트 메시지 등 완전 번역
 
-### 온보딩
+### 🎯 온보딩
 - **첫 실행 가이드**: 처음 사용자를 위한 4페이지 온보딩
 - **주요 기능 소개**: 프라이버시 모드, 마크다운 뷰어, 프리셋 기능
 - **비디오 데모**: 실제 사용 예시를 보여주는 영상
 - **키보드 네비게이션**: 화살표 키, Enter, Escape로 탐색
 
-### 키보드 단축키
+### ⌨️ 키보드 단축키
 - **파일 탐색기**: `Ctrl+S`로 열기/닫기 토글
 - **프라이버시 모드**: `Ctrl+H`로 빠른 토글
 - **온보딩 다시보기**: 삭제된 localStorage 키로 재실행 가능
 
-## 기술 스택
+## 🛠️ 기술 스택
 
-- React 18 + TypeScript
-- Vite (빌드 도구)
-- Electron (데스크톱 앱)
-- TailwindCSS (스타일링)
-- React Markdown + remark-gfm (마크다운 렌더링)
-- react-i18next (국제화)
-- Jest + React Testing Library (테스트)
-- Cypress (E2E 테스트)
-- 순수 브라우저 API (Selection API, ContentEditable)
+- **Frontend**: React 19 + TypeScript
+- **Build Tool**: Vite 7
+- **Desktop**: Electron 39
+- **Styling**: TailwindCSS
+- **Markdown**: React Markdown + remark-gfm
+- **i18n**: react-i18next
+- **Testing**: Jest + React Testing Library (106 tests, 89% coverage)
+- **Native APIs**: Selection API, ContentEditable
 
-## 테스트
+## 🧪 테스트
 
 프로젝트는 포괄적인 테스트 커버리지를 갖추고 있습니다:
 
-- **총 테스트**: 106개
-- **테스트 커버리지**: 89.37%
+- **총 테스트**: 106개 ✅
+- **테스트 커버리지**: 89.37% 📊
 - **테스트 스위트**: 6개
 
 ```bash
@@ -86,7 +117,7 @@ npm run test:verbose
 - `useKeyboardShortcuts.test.ts` - 키보드 단축키 (22개 테스트)
 - `FileExplorer.test.tsx` - 통합 테스트 (10개 테스트)
 
-## 시작하기
+## 🚀 시작하기
 
 ### 웹 버전
 
@@ -117,7 +148,7 @@ npm run electron:dev
 npm run electron:build
 ```
 
-## 사용 방법
+## 📖 사용 방법
 
 ### 첫 실행
 1. **온보딩 화면**: 앱을 처음 실행하면 4페이지 온보딩이 표시됩니다
@@ -137,7 +168,7 @@ npm run electron:build
 7. **마크다운 뷰어**: 마크다운 파일 선택 시 우측 상단에 뷰어 토글 버튼 표시
 8. **언어 변경**: 설정 패널 하단에서 한국어/영어 전환
 
-## 키보드 단축키
+## ⌨️ 키보드 단축키
 
 ### 전역 단축키
 - `Ctrl + S`: 파일 탐색기 열기/닫기
@@ -152,7 +183,7 @@ npm run electron:build
 - `Escape`: 열린 패널 닫기
 - `Tab`: 포커스 이동 (포커스 트랩)
 
-## 프로젝트 구조
+## 📂 프로젝트 구조
 
 ```
 src/
@@ -195,13 +226,23 @@ src/
 └── main.tsx                    # 진입점
 ```
 
-## 빌드 결과물
+## 📦 빌드 결과물
 
 Electron 앱 빌드 시 생성되는 파일:
-- **macOS**: DMG 파일
+- **macOS**: `Pwritevacy-1.0.0-beta-arm64.dmg` (Apple 공증 완료 ✅)
 - **Windows**: NSIS 인스톨러
 - **Linux**: AppImage
 
-## 라이선스
+---
 
-MIT
+## 📄 라이선스
+
+MIT License
+
+## 🤝 기여
+
+이슈 및 PR은 [GitHub Issues](https://github.com/Kuneosu/P-write-vacy/issues)에서 환영합니다.
+
+## 📧 문의
+
+프로젝트에 대한 문의사항은 [GitHub Issues](https://github.com/Kuneosu/P-write-vacy/issues)를 이용해주세요.

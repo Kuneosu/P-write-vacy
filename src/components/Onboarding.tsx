@@ -132,19 +132,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </p>
             </div>
 
-            {/* Markdown Viewer Video */}
+            {/* Markdown Viewer GIF */}
             <div className="w-full max-w-xl mx-auto">
-              <video
+              <img
                 key={currentPage}
-                src="/assets/gifs/mdviewer.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
+                src={`/assets/gifs/mdviewer.gif?t=${Date.now()}`}
+                alt="Markdown Viewer Demo"
                 className="w-full rounded-2xl shadow-2xl"
-              >
-                Your browser does not support the video tag.
-              </video>
+              />
             </div>
           </div>
         )}
@@ -162,19 +157,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               </p>
             </div>
 
-            {/* Preset Feature Video */}
+            {/* Preset Feature GIF */}
             <div className="w-full max-w-xl mx-auto">
-              <video
+              <img
                 key={currentPage}
-                src="/assets/gifs/preset.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
+                src={`/assets/gifs/preset.gif?t=${Date.now()}`}
+                alt="Preset Feature Demo"
                 className="w-full rounded-2xl shadow-2xl"
-              >
-                Your browser does not support the video tag.
-              </video>
+              />
             </div>
           </div>
         )}
