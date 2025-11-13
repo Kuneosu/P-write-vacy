@@ -215,7 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar */}
       <div
         ref={sidebarRef}
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 h-full w-80 bg-gray-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{ zIndex: 150 }}
@@ -225,17 +225,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         <div className="h-full flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">{t('settings.title')}</h2>
+          <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">{t('settings.title')}</h2>
             <button
               ref={closeButtonRef}
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
               style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
               aria-label={t('settings.close')}
             >
               <svg
-                className="w-6 h-6 text-gray-600"
+                className="w-5 h-5 text-gray-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -253,10 +253,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Presets Section */}
-            <div className="space-y-3">
+            <div className="space-y-3 bg-white rounded-lg p-4 shadow-sm">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-700">{t('presets.title')}</h3>
-                <span className="text-xs text-gray-500">{presets.length}/3</span>
+                <h3 className="text-sm font-semibold text-gray-900">{t('presets.title')}</h3>
+                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{presets.length}/3</span>
               </div>
 
               {/* Preset List */}
@@ -278,12 +278,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             if (e.key === 'Enter') handleSaveEdit(preset.id);
                             if (e.key === 'Escape') setEditingPresetId(null);
                           }}
-                          className="flex-1 px-3 py-2 text-sm border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                           autoFocus
                         />
                         <button
                           onClick={() => handleSaveEdit(preset.id)}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
                           aria-label={t('presets.saveName')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -295,27 +295,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <button
                         onClick={() => onLoadPreset(preset)}
                         onContextMenu={(e) => handleContextMenu(e, preset.id)}
-                        className="w-full px-3 py-2 text-left text-sm bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors relative group"
+                        className="w-full px-3 py-2.5 text-left text-sm bg-gray-50 hover:bg-gray-100 rounded-md transition-colors relative group border border-gray-200"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-700 group-hover:text-blue-700">
+                          <span className="font-medium text-gray-800">
                             {preset.name}
                           </span>
-                          <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
                         {hoveredPreset?.id === preset.id && (
-                          <div className="absolute left-0 right-0 -top-20 bg-gray-800 text-white text-xs rounded-lg p-2 z-10 shadow-lg">
-                            <div className="space-y-1">
-                              <div className="font-semibold border-b border-gray-600 pb-1">
+                          <div className="absolute left-0 right-0 -top-20 bg-gray-900 text-white text-xs rounded-md p-3 z-10 shadow-lg">
+                            <div className="space-y-1.5">
+                              <div className="font-semibold border-b border-gray-700 pb-1.5">
                                 {preset.name}
                               </div>
                               <div className="text-gray-300">
                                 {formatSettings(preset.settings)}
                               </div>
                             </div>
-                            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-800" />
+                            <div className="absolute bottom-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-gray-900" />
                           </div>
                         )}
                       </button>
@@ -341,12 +341,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           }
                         }}
                         placeholder={t('presets.name')}
-                        className="flex-1 px-3 py-2 text-sm border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
                         autoFocus
                       />
                       <button
                         onClick={handleCreatePreset}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
                         aria-label={t('presets.save')}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -358,7 +358,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           setIsCreatingPreset(false);
                           setNewPresetName('');
                         }}
-                        className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:bg-gray-100 rounded-md transition-colors"
                         aria-label={t('presets.cancel')}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -369,7 +369,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   ) : (
                     <button
                       onClick={() => setIsCreatingPreset(true)}
-                      className="w-full px-3 py-2 text-sm text-blue-600 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      className="w-full px-3 py-2.5 text-sm text-gray-600 border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 rounded-md transition-colors flex items-center justify-center gap-2"
                       aria-label={t('presets.create')}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -387,9 +387,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {/* Privacy Toggle */}
-            <div className="space-y-3">
+            <div className="space-y-3 bg-white rounded-lg p-4 shadow-sm">
               <label className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-semibold text-gray-900">
                   {t('privacy.mode')}
                 </span>
                 <button
@@ -397,12 +397,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   role="switch"
                   aria-checked={privacyActive}
                   aria-label={t('privacy.toggle')}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    privacyActive ? 'bg-blue-600' : 'bg-gray-300'
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 ${
+                    privacyActive ? 'bg-gray-800' : 'bg-gray-300'
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
                       privacyActive ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
@@ -413,14 +413,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </p>
             </div>
 
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">
                 {t('focus.title')}
               </h3>
 
               {/* Focus Shape */}
-              <div className="space-y-2 mb-4">
-                <label className="text-sm text-gray-700 block mb-2">
+              <div className="space-y-2">
+                <label className="text-sm text-gray-700 block">
                   {t('focus.shape.title')}
                 </label>
                 <div className="grid grid-cols-2 gap-2" role="group" aria-label={t('focus.shape.aria')}>
@@ -428,10 +428,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleShapeChange('ellipse')}
                     role="radio"
                     aria-checked={focusSettings.focusShape === 'ellipse'}
-                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    className={`py-2 px-3 rounded-md text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 ${
                       focusSettings.focusShape === 'ellipse'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gray-800 text-white shadow-sm'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                     }`}
                   >
                     {t('focus.shape.ellipse')}
@@ -440,10 +440,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleShapeChange('circle')}
                     role="radio"
                     aria-checked={focusSettings.focusShape === 'circle'}
-                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    className={`py-2 px-3 rounded-md text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 ${
                       focusSettings.focusShape === 'circle'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gray-800 text-white shadow-sm'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                     }`}
                   >
                     {t('focus.shape.circle')}
@@ -453,10 +453,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Circle: Single Size Control */}
               {focusSettings.focusShape === 'circle' ? (
-                <div className="space-y-2 mb-4">
+                <div className="space-y-2">
                   <label className="flex items-center justify-between text-sm text-gray-700">
                     <span>{t('focus.size.title')}</span>
-                    <span className="font-mono text-blue-600">
+                    <span className="font-mono text-xs text-gray-900 font-medium bg-gray-100 px-2 py-0.5 rounded">
                       {focusSettings.radiusX}px
                     </span>
                   </label>
@@ -471,16 +471,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     aria-valuemin={30}
                     aria-valuemax={150}
                     aria-valuenow={focusSettings.radiusX}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                   />
                 </div>
               ) : (
                 <>
                   {/* Radius X */}
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-2">
                     <label className="flex items-center justify-between text-sm text-gray-700">
                       <span>{t('focus.size.width')}</span>
-                      <span className="font-mono text-blue-600">
+                      <span className="font-mono text-xs text-gray-900 font-medium bg-gray-100 px-2 py-0.5 rounded">
                         {focusSettings.radiusX}px
                       </span>
                     </label>
@@ -495,15 +495,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       aria-valuemin={30}
                       aria-valuemax={150}
                       aria-valuenow={focusSettings.radiusX}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                     />
                   </div>
 
                   {/* Radius Y */}
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-2">
                     <label className="flex items-center justify-between text-sm text-gray-700">
                       <span>{t('focus.size.height')}</span>
-                      <span className="font-mono text-blue-600">
+                      <span className="font-mono text-xs text-gray-900 font-medium bg-gray-100 px-2 py-0.5 rounded">
                         {focusSettings.radiusY}px
                       </span>
                     </label>
@@ -518,7 +518,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       aria-valuemin={15}
                       aria-valuemax={100}
                       aria-valuenow={focusSettings.radiusY}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                     />
                   </div>
                 </>
@@ -528,7 +528,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
                   <span>{t('focus.spread.title')}</span>
-                  <span className="font-mono text-blue-600">
+                  <span className="font-mono text-xs text-gray-900 font-medium bg-gray-100 px-2 py-0.5 rounded">
                     {focusSettings.blurSpread}
                   </span>
                 </label>
@@ -543,7 +543,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={focusSettings.blurSpread}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                 />
                 <p className="text-xs text-gray-500">
                   {t('focus.spread.description')}
@@ -551,13 +551,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">
                 {t('style.editor')}
               </h3>
 
               {/* Background Color */}
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
                   <span>{t('colors.background')}</span>
                   <div className="flex items-center gap-2">
@@ -566,7 +566,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       value={focusSettings.backgroundColor}
                       onChange={(e) => handleBackgroundColorChange(e.target.value)}
                       aria-label={t('colors.aria.background')}
-                      className="w-10 h-8 rounded cursor-pointer"
+                      className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
                       {focusSettings.backgroundColor}
@@ -576,7 +576,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {/* Text Color */}
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
                   <span>{t('colors.text')}</span>
                   <div className="flex items-center gap-2">
@@ -585,7 +585,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       value={focusSettings.textColor}
                       onChange={(e) => handleTextColorChange(e.target.value)}
                       aria-label={t('colors.aria.text')}
-                      className="w-10 h-8 rounded cursor-pointer"
+                      className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
                       {focusSettings.textColor}
@@ -595,13 +595,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            <div className="bg-white rounded-lg p-4 shadow-sm space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">
                 {t('style.blur')}
               </h3>
 
               {/* Color */}
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
                   <span>{t('focus.blur.color')}</span>
                   <div className="flex items-center gap-2">
@@ -610,7 +610,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       value={focusSettings.blurColor}
                       onChange={(e) => handleColorChange(e.target.value)}
                       aria-label={t('focus.blur.aria.color')}
-                      className="w-10 h-8 rounded cursor-pointer"
+                      className="w-10 h-8 rounded border border-gray-200 cursor-pointer"
                     />
                     <span className="font-mono text-xs text-gray-500">
                       {focusSettings.blurColor}
@@ -620,10 +620,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
 
               {/* Opacity */}
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
                   <span>{t('focus.blur.opacity')}</span>
-                  <span className="font-mono text-blue-600">
+                  <span className="font-mono text-xs text-gray-900 font-medium bg-gray-100 px-2 py-0.5 rounded">
                     {Math.round(focusSettings.blurOpacity * 100)}%
                   </span>
                 </label>
@@ -639,7 +639,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-valuemax={1}
                   aria-valuenow={focusSettings.blurOpacity}
                   aria-valuetext={`${Math.round(focusSettings.blurOpacity * 100)}%`}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                 />
               </div>
 
@@ -647,7 +647,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="space-y-2">
                 <label className="flex items-center justify-between text-sm text-gray-700">
                   <span>{t('focus.blur.intensity')}</span>
-                  <span className="font-mono text-blue-600">
+                  <span className="font-mono text-xs text-gray-900 font-medium bg-gray-100 px-2 py-0.5 rounded">
                     {focusSettings.blurIntensity}px
                   </span>
                 </label>
@@ -663,7 +663,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-valuemax={20}
                   aria-valuenow={focusSettings.blurIntensity}
                   aria-valuetext={`${focusSettings.blurIntensity}px`}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-700"
                 />
                 <p className="text-xs text-gray-500">
                   {t('focus.blur.description')}
@@ -672,49 +672,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             {/* Language Selection */}
-            <div className="border-t border-gray-200 pt-6">
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">{t('language.title')}</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => i18n.changeLanguage('ko')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      i18n.language === 'ko'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-                  >
-                    {t('language.korean')}
-                  </button>
-                  <button
-                    onClick={() => i18n.changeLanguage('en')}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      i18n.language === 'en'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                    style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-                  >
-                    {t('language.english')}
-                  </button>
-                </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900">{t('language.title')}</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => i18n.changeLanguage('ko')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    i18n.language === 'ko'
+                      ? 'bg-gray-800 text-white shadow-sm'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                  style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+                >
+                  {t('language.korean')}
+                </button>
+                <button
+                  onClick={() => i18n.changeLanguage('en')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    i18n.language === 'en'
+                      ? 'bg-gray-800 text-white shadow-sm'
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
+                  style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+                >
+                  {t('language.english')}
+                </button>
               </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="p-6 border-t border-gray-200">
-            <div className="text-xs text-gray-500 space-y-1">
-              <p className="font-semibold">{t('shortcuts.title')}</p>
-              <p>
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">
-                  Ctrl
-                </kbd>{' '}
-                +{' '}
-                <kbd className="px-2 py-1 bg-gray-100 rounded text-xs">H</kbd> -
-                {t('shortcuts.privacy')}
-              </p>
             </div>
           </div>
         </div>
