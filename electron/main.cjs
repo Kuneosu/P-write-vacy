@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, protocol, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
@@ -131,7 +131,146 @@ function createWindow() {
   });
 }
 
+function createMenu() {
+  const isMac = process.platform === 'darwin';
+
+  const template = [
+    // macOS의 경우 첫 번째 메뉴는 앱 이름
+    ...(isMac ? [{
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    }] : []),
+    // File 메뉴
+    {
+      label: 'File',
+      submenu: [
+        isMac ? { role: 'close' } : { role: 'quit' }
+      ]
+    },
+    // Edit 메뉴
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        ...(isMac ? [
+          { role: 'pasteAndMatchStyle' },
+          { role: 'delete' },
+          { role: 'selectAll' },
+          { type: 'separator' },
+          {
+            label: 'Speech',
+            submenu: [
+              { role: 'startSpeaking' },
+              { role: 'stopSpeaking' }
+            ]
+          }
+        ] : [
+          { role: 'delete' },
+          { type: 'separator' },
+          { role: 'selectAll' }
+        ])
+      ]
+    },
+    // View 메뉴
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
+    // Window 메뉴 - 여기가 크래시 원인이었던 부분
+    {
+      label: 'Window',
+      submenu: [
+        {
+          label: 'Minimize',
+          accelerator: 'CmdOrCtrl+M',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow && !focusedWindow.isDestroyed()) {
+              focusedWindow.minimize();
+            }
+          }
+        },
+        {
+          label: 'Zoom',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow && !focusedWindow.isDestroyed()) {
+              if (focusedWindow.isMaximized()) {
+                focusedWindow.unmaximize();
+              } else {
+                focusedWindow.maximize();
+              }
+            }
+          }
+        },
+        { type: 'separator' },
+        ...(isMac ? [
+          { role: 'front' },
+          { type: 'separator' },
+          {
+            label: 'Bring All to Front',
+            click: () => {
+              const windows = BrowserWindow.getAllWindows();
+              windows.forEach(win => {
+                if (win && !win.isDestroyed()) {
+                  win.show();
+                }
+              });
+            }
+          }
+        ] : [
+          { role: 'close' }
+        ])
+      ]
+    },
+    // Help 메뉴
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Learn More',
+          click: async () => {
+            const { shell } = require('electron');
+            await shell.openExternal('https://github.com/anthropics/claude-code');
+          }
+        }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
 app.whenReady().then(() => {
+  // 메뉴 생성 (크래시 방지를 위해 명시적으로 설정)
+  createMenu();
+
   // app:// custom protocol 등록
   protocol.registerFileProtocol('app', (request, callback) => {
     let url = request.url.substring(6); // 'app://' 제거
