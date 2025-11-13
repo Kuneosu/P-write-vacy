@@ -67,12 +67,30 @@ export const useFileOperations = ({
   const toast = useToast();
 
   // File creation state
-  const [isCreatingFile, setIsCreatingFile] = useState(false);
+  const [isCreatingFile, setIsCreatingFileState] = useState(false);
   const [newFileName, setNewFileName] = useState('');
 
   // Folder creation state
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [isCreatingFolder, setIsCreatingFolderState] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+
+  // 파일 생성 다이얼로그 열 때 폴더 생성 다이얼로그 닫기
+  const setIsCreatingFile = (value: boolean) => {
+    setIsCreatingFileState(value);
+    if (value) {
+      setIsCreatingFolderState(false);
+      setNewFolderName('');
+    }
+  };
+
+  // 폴더 생성 다이얼로그 열 때 파일 생성 다이얼로그 닫기
+  const setIsCreatingFolder = (value: boolean) => {
+    setIsCreatingFolderState(value);
+    if (value) {
+      setIsCreatingFileState(false);
+      setNewFileName('');
+    }
+  };
 
   // Rename state
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
