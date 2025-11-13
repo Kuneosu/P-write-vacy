@@ -77,6 +77,7 @@ export const useCaretTracking = (editorRef: RefObject<HTMLDivElement | null>) =>
     // Add event listeners with throttled update
     editor.addEventListener('input', throttledUpdate);
     editor.addEventListener('click', throttledUpdate);
+    editor.addEventListener('keydown', throttledUpdate); // For continuous arrow key tracking
     editor.addEventListener('keyup', throttledUpdate);
     editor.addEventListener('focus', throttledUpdate);
     editor.addEventListener('scroll', throttledUpdate);
@@ -87,6 +88,7 @@ export const useCaretTracking = (editorRef: RefObject<HTMLDivElement | null>) =>
     return () => {
       editor.removeEventListener('input', throttledUpdate);
       editor.removeEventListener('click', throttledUpdate);
+      editor.removeEventListener('keydown', throttledUpdate);
       editor.removeEventListener('keyup', throttledUpdate);
       editor.removeEventListener('focus', throttledUpdate);
       editor.removeEventListener('scroll', throttledUpdate);
