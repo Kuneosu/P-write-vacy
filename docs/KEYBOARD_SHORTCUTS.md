@@ -248,4 +248,4 @@ Electron 데스크톱 앱에서는:
 
 - [사용자 가이드](./USER_GUIDE.md): 전체 기능 사용 방법
 - [README.md](../README.md): 프로젝트 개요 및 설치
-- [GitHub Issues](https://github.com/your-username/p-write-vacy-react/issues): 버그 리포트 및 기능 제안
+- [GitHub Issues](https://github.com/your-username/pwritevacy/issues): 버그 리포트 및 기능 제안

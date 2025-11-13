@@ -294,4 +294,4 @@ P-write-vacy는 프라이버시를 보호하는 텍스트 에디터입니다. �
 더 많은 정보는 다음을 참고하세요:
 - [README.md](../README.md): 기술 스택 및 설치 방법
 - [KEYBOARD_SHORTCUTS.md](./KEYBOARD_SHORTCUTS.md): 전체 단축키 목록
-- [GitHub Issues](https://github.com/your-username/p-write-vacy-react/issues): 버그 리포트 및 기능 제안
+- [GitHub Issues](https://github.com/your-username/pwritevacy/issues): 버그 리포트 및 기능 제안

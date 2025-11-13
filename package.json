@@ -1,7 +1,7 @@
 {
-  "name": "p-write-vacy-react",
+  "name": "pwritevacy",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0-beta",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -14,7 +14,7 @@
     "test:coverage": "NODE_NO_WARNINGS=1 jest --coverage --silent",
     "test:verbose": "jest",
     "electron:dev": "concurrently \"cross-env NODE_ENV=development npm run dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
-    "electron:build": "npm run build && electron-builder"
+    "electron:build": "npm run build && dotenv -e .env -- electron-builder"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
@@ -38,6 +38,7 @@
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "dotenv-cli": "^11.0.0",
     "electron": "^39.1.0",
     "electron-builder": "^26.0.12",
     "eslint": "^9.36.0",
@@ -73,7 +74,12 @@
       "icon": "assets/app_icon.png",
       "target": [
         "dmg"
-      ]
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": true
     },
     "win": {
       "target": [
