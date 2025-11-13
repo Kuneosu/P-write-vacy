@@ -16,6 +16,9 @@ dist-ssr
 out
 build
 
+# Test coverage
+coverage
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
