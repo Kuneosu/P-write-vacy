@@ -50,6 +50,20 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
       aria-modal="true"
       aria-labelledby="onboarding-title"
     >
+      {/* macOS 드래그 영역 */}
+      <div
+        style={
+          {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "52px",
+            WebkitAppRegion: "drag",
+            zIndex: 10000,
+          } as React.CSSProperties
+        }
+      />
       <div className="w-full max-w-6xl mx-auto px-8 flex-1 flex flex-col items-center justify-center relative z-10">
         {/* Page 1: Welcome */}
         {currentPage === 0 && (

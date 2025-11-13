@@ -80,9 +80,6 @@ function createWindow() {
     mainWindow.loadURL('app://./index.html').catch(err => {
       console.error('Failed to load index.html:', err);
     });
-
-    // 프로덕션에서도 디버깅을 위해 DevTools 열기
-    mainWindow.webContents.openDevTools();
   }
 
   // ready-to-show 이벤트로 깜빡임 방지
